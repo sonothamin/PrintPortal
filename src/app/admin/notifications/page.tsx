@@ -123,14 +123,16 @@ export default function NotificationManagement() {
   };
 
   const handleDelete = async (id: string) => {
-    const { error } = await supabase
-      .from('notifications')
-      .delete()
-      .eq('id', id);
+    const { data, error } = await supabase.functions.invoke('admin-actions', {
+      body: { action: 'delete-notification', notification_id: id }
+    });
 
-    if (!error) {
-      setNotifications(prev => prev.filter(n => n.id !== id));
+    if (error || !data?.success) {
+      console.error('Delete failed:', data?.error || error?.message);
+      return;
     }
+
+    setNotifications(prev => prev.filter(n => n.id !== id));
   };
 
   const getIcon = (type: string) => {

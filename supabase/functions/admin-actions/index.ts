@@ -127,6 +127,24 @@ serve(async (req: any) => {
       })
     }
 
+    // ── ACTION: delete-notification ──────────────────────────────────
+    if (action === 'delete-notification') {
+      const { notification_id } = payload
+      if (!notification_id) throw new Error('Missing notification_id')
+
+      const { error } = await supabaseAdmin
+        .from('notifications')
+        .delete()
+        .eq('id', notification_id)
+
+      if (error) throw new Error(`Database error: ${error.message}`)
+
+      return new Response(JSON.stringify({ success: true, deleted_id: notification_id }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      })
+    }
+
     throw new Error(`Unknown action: ${action}`)
 
   } catch (error: any) {

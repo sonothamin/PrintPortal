@@ -41,7 +41,8 @@ import {
   History as HistoryIcon,
   BarChart3,
   Printer as PrinterIcon,
-  QrCode
+  QrCode,
+  RotateCw
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -219,7 +220,7 @@ export default function TokenManagementPage() {
 
   return (
     <AdminPortalLayout>
-      <Box sx={{ mb: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+      <Box sx={{ mb: 4, display: 'flex', flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', md: 'flex-end' }, gap: 2 }}>
         <Box>
           <Typography variant="h4" sx={{ fontWeight: 900, letterSpacing: -1.5, mb: 1 }}>
             Token Management
@@ -228,29 +229,29 @@ export default function TokenManagementPage() {
             Generate, track, and audit recharge tokens for the PrintPortal print system.
           </Typography>
         </Box>
-        <Box sx={{ display: 'flex', gap: 2 }}>
+        <Box sx={{ display: 'flex', gap: 1.5, width: { xs: '100%', md: 'auto' } }}>
           <Button 
             variant="outlined" 
             startIcon={<FileSpreadsheet size={18} />} 
             onClick={exportToCSV}
-            sx={{ fontWeight: 700, borderRadius: 2 }}
+            sx={{ fontWeight: 700, borderRadius: 2, flex: { xs: 1, md: 'unset' } }}
           >
-            Export All
+            Export
           </Button>
           <Button 
             variant="contained" 
             startIcon={<PrinterIcon size={18} />} 
             onClick={handlePrint}
-            sx={{ fontWeight: 700, borderRadius: 2 }}
+            sx={{ fontWeight: 700, borderRadius: 2, flex: { xs: 1, md: 'unset' } }}
           >
             Print Sheet
           </Button>
         </Box>
       </Box>
 
-      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', overflowX: 'auto' }}>
         <Tabs value={tabValue} onChange={(_, v) => setTabValue(v)} aria-label="token manager tabs" sx={{
-          '& .MuiTab-root': { fontWeight: 800, minHeight: 64 },
+          '& .MuiTab-root': { fontWeight: 800, minHeight: 64, whiteSpace: 'nowrap' },
           '& .Mui-selected': { color: 'primary.main' }
         }}>
           <Tab icon={<LayoutGrid size={18} />} iconPosition="start" label="Token Generator" />
@@ -353,6 +354,18 @@ export default function TokenManagementPage() {
               if (circulationFilter === 'used') filtered = filtered.filter(t => t.is_used);
               return filtered.length;
             })() } results`} size="small" sx={{ fontWeight: 800 }} />
+            <Box sx={{ ml: 'auto' }}>
+              <Tooltip title="Refresh">
+                <IconButton
+                  size="small"
+                  onClick={fetchTokens}
+                  disabled={loading}
+                  sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2 }}
+                >
+                  <RotateCw size={16} style={{ animation: loading ? 'spin 1.1s linear infinite' : 'none' }} />
+                </IconButton>
+              </Tooltip>
+            </Box>
           </Box>
           <TableContainer sx={{ maxHeight: '60vh' }}>
             <Table stickyHeader>
