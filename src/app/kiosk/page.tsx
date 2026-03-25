@@ -49,9 +49,14 @@ export default function KioskPage() {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('role')
+        .select('role, status')
         .eq('id', session.user.id)
         .single();
+
+      if (profile?.status === 'suspended') {
+        router.push('/suspended');
+        return;
+      }
 
       if (profile?.role !== 'admin' && profile?.role !== 'kiosk') {
         setForbidden(true);

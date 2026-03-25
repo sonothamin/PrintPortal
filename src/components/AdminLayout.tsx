@@ -72,9 +72,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       // Check if user is admin in profiles table
       const { data: profile, error } = await supabase
         .from('profiles')
-        .select('role')
+        .select('role, status')
         .eq('id', session.user.id)
         .single();
+
+      if (profile?.status === 'suspended') {
+        router.push('/suspended');
+        return;
+      }
 
       if (error || profile?.role !== 'admin') {
         router.push('/dashboard');
@@ -257,9 +262,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 transformOrigin={{ horizontal: 'right', vertical: 'top' }}
                 anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
               >
-                <MenuItem onClick={handleLogout}>
-                  <ListItemIcon><LogOut size={18} /></ListItemIcon>
-                  Logout
+                <Divider />
+                <MenuItem onClick={handleLogout} sx={{ py: 1.2, borderRadius: 1.5, mx: 1, my: 0.5, color: 'error.main' }}>
+                  <ListItemIcon sx={{ color: 'inherit' }}><LogOut size={18} /></ListItemIcon>
+                  <ListItemText primary="Logout" primaryTypographyProps={{ fontWeight: 700, fontSize: '0.85rem' }} />
                 </MenuItem>
               </Menu>
             </Box>

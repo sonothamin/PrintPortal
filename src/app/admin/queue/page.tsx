@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import AdminPortalLayout from '@/components/AdminPortalLayout';
 import { 
   Typography, 
@@ -61,7 +62,11 @@ interface PrintJob {
   };
 }
 
-export default function GlobalQueuePage() {
+function GlobalQueueContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const userIdFilter = searchParams.get('user_id');
+
   const [jobs, setJobs] = useState<PrintJob[]>([]);
   const [loading, setLoading] = useState(true);
   const [releasing, setReleasing] = useState<string | null>(null);
@@ -86,6 +91,10 @@ export default function GlobalQueuePage() {
       query = query.eq('status', filterStatus);
     }
 
+    if (userIdFilter) {
+      query = query.eq('user_id', userIdFilter);
+    }
+
     const { data, error } = await query;
     if (data) setJobs(data as any);
     setLoading(false);
@@ -93,7 +102,7 @@ export default function GlobalQueuePage() {
 
   useEffect(() => {
     fetchJobs();
-  }, [filterStatus]);
+  }, [filterStatus, userIdFilter]);
 
   const handleRelease = async (jobId: string) => {
     setReleasing(jobId);
@@ -223,8 +232,29 @@ export default function GlobalQueuePage() {
       </Box>
 
       {statusMsg && (
-        <Alert severity={statusMsg.type} sx={{ mb: 4, borderRadius: 3 }}>
+        <Alert severity={statusMsg.type} sx={{ mb: 3, borderRadius: 2 }}>
           {statusMsg.text}
+        </Alert>
+      )}
+
+      {userIdFilter && (
+        <Alert 
+          severity="info" 
+          icon={<Filter size={20} />}
+          sx={{ mb: 3, borderRadius: 2, '& .MuiAlert-message': { display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' } }}
+        >
+          <Typography variant="body2" sx={{ fontWeight: 700 }}>
+            Showing results for User ID: {userIdFilter}
+          </Typography>
+          <Button 
+            size="small" 
+            variant="outlined" 
+            color="inherit" 
+            onClick={() => router.push('/admin/queue')}
+            sx={{ fontWeight: 800, borderRadius: 1.5 }}
+          >
+            Clear Filter
+          </Button>
         </Alert>
       )}
 
@@ -425,6 +455,14 @@ export default function GlobalQueuePage() {
         </DialogActions>
       </Dialog>
     </AdminPortalLayout>
+  );
+}
+
+export default function GlobalQueuePage() {
+  return (
+    <Suspense fallback={<Box sx={{ p: 4, display: 'flex', justifyContent: 'center' }}><RefreshCw className="animate-spin" /></Box>}>
+      <GlobalQueueContent />
+    </Suspense>
   );
 }
 

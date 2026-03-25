@@ -81,9 +81,14 @@ export default function AdminPortalLayout({ children }: { children: React.ReactN
 
       const { data: profile, error } = await supabase
         .from('profiles')
-        .select('role, avatar_url, full_name')
+        .select('role, avatar_url, full_name, status') // Added 'status' to selection
         .eq('id', session.user.id)
         .single();
+
+      if (profile?.status === 'suspended') { // Check for suspended status
+        router.push('/suspended');
+        return;
+      }
 
       if (error || profile?.role !== 'admin') {
         console.warn('Admin access denied for non-admin role (403).');
@@ -126,7 +131,7 @@ export default function AdminPortalLayout({ children }: { children: React.ReactN
   }
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: mode === 'dark' ? '#0a0a0a' : '#f8f9fa' }}>
+    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
       {/* Sidebar */}
       <Drawer
         variant="permanent"
@@ -276,14 +281,11 @@ export default function AdminPortalLayout({ children }: { children: React.ReactN
                   <ListItemIcon><LayoutDashboard size={18} /></ListItemIcon>
                   User Portal
                 </MenuItem>
-                <MenuItem onClick={handleClose}>
-                  <ListItemIcon><Settings size={18} /></ListItemIcon>
-                  Settings
-                </MenuItem>
+
                 <Divider />
-                <MenuItem onClick={handleLogout} sx={{ color: 'error.main' }}>
-                  <ListItemIcon><LogOut size={18} color={theme.palette.error.main} /></ListItemIcon>
-                  Logout
+                <MenuItem onClick={handleLogout} sx={{ py: 1.2, borderRadius: 1.5, mx: 1, my: 0.5, color: 'error.main' }}>
+                  <ListItemIcon sx={{ color: 'inherit' }}><LogOut size={18} /></ListItemIcon>
+                  <ListItemText primary="Logout" primaryTypographyProps={{ fontWeight: 700, fontSize: '0.85rem' }} />
                 </MenuItem>
               </Menu>
             </Box>

@@ -34,7 +34,8 @@ import {
   User,
   Sun,
   Moon,
-  History as HistoryIcon
+  History as HistoryIcon,
+  ShieldCheck
 } from 'lucide-react';
 import { useThemeMode } from '@/theme/ThemeContext';
 import Link from 'next/link';
@@ -57,6 +58,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [userInitial, setUserInitial] = useState('U');
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
   const { mode, toggleTheme } = useThemeMode();
   const pathname = usePathname();
 
@@ -72,12 +74,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         // Fetch profile data
         const { data: profile } = await supabase
           .from('profiles')
-          .select('avatar_url')
+          .select('avatar_url, role, status')
           .eq('id', session.user.id)
           .single();
         
         if (profile) {
+          if (profile.status === 'suspended') {
+            router.push('/suspended');
+            return;
+          }
           setAvatarUrl(profile.avatar_url);
+          setUserRole(profile.role);
         }
       }
     };
@@ -169,19 +176,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </List>
         
 
-        <Divider sx={{ mt: 2 }} />
-        <List sx={{ px: 1.5, py: 2 }}>
-          <ListItem disablePadding>
-            <Link href="/dashboard/settings" passHref style={{ width: '100%' }}>
-              <ListItemButton sx={{ borderRadius: 2, px: 2.5 }}>
-                <ListItemIcon sx={{ minWidth: 0, mr: open ? 2 : 'auto' }}>
-                  <Settings size={20} />
-                </ListItemIcon>
-                {open && <ListItemText primary="Settings" primaryTypographyProps={{ fontWeight: 600, fontSize: '0.9rem' }} />}
-              </ListItemButton>
-            </Link>
-          </ListItem>
-        </List>
+
+
+        <Box sx={{ mt: 'auto', p: 1.5 }}>
+          <Divider sx={{ mb: 1 }} />
+          <ListItemButton onClick={handleLogout} sx={{ borderRadius: 2, color: 'error.main', px: 2.5 }}>
+            <ListItemIcon sx={{ minWidth: 0, mr: open ? 2 : 'auto', color: 'inherit' }}>
+              <LogOut size={20} />
+            </ListItemIcon>
+            {open && <ListItemText primary="Sign Out" primaryTypographyProps={{ fontWeight: 700, fontSize: '0.9rem' }} />}
+          </ListItemButton>
+        </Box>
       </Drawer>
 
       {/* Main Content */}
@@ -209,13 +214,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               transformOrigin={{ horizontal: 'right', vertical: 'top' }}
               anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
             >
-              <MenuItem onClick={() => { handleClose(); router.push('/dashboard/profile'); }}>
+              <MenuItem onClick={() => { handleClose(); router.push('/dashboard/profile'); }} sx={{ py: 1.2, borderRadius: 1.5, mx: 1, my: 0.5 }}>
                 <ListItemIcon><User size={18} /></ListItemIcon>
-                Profile
+                <ListItemText primary="Profile" primaryTypographyProps={{ fontWeight: 700, fontSize: '0.85rem' }} />
               </MenuItem>
-              <MenuItem onClick={handleLogout}>
-                <ListItemIcon><LogOut size={18} /></ListItemIcon>
-                Logout
+              {userRole === 'admin' && (
+                <MenuItem onClick={() => { handleClose(); router.push('/admin'); }} sx={{ py: 1.2, borderRadius: 1.5, mx: 1, my: 0.5 }}>
+                  <ListItemIcon><ShieldCheck size={18} /></ListItemIcon>
+                  <ListItemText primary="Admin Portal" primaryTypographyProps={{ fontWeight: 700, fontSize: '0.85rem' }} />
+                </MenuItem>
+              )}
+              <MenuItem onClick={handleLogout} sx={{ py: 1.2, borderRadius: 1.5, mx: 1, my: 0.5, color: 'error.main' }}>
+                <ListItemIcon sx={{ color: 'inherit' }}><LogOut size={18} /></ListItemIcon>
+                <ListItemText primary="Logout" primaryTypographyProps={{ fontWeight: 700, fontSize: '0.85rem' }} />
               </MenuItem>
             </Menu>
           </Toolbar>

@@ -58,6 +58,39 @@ const getDesignTokens = (mode: 'light' | 'dark'): ThemeOptions => ({
         },
       },
     },
+    MuiCssBaseline: {
+      styleOverrides: (theme) => ({
+        ':root': {
+          colorScheme: mode,
+        },
+        html: {
+          backgroundColor: mode === 'dark' ? '#000' : '#f8f9fa',
+        },
+        body: {
+          backgroundColor: mode === 'dark' ? '#000' : '#f8f9fa',
+          scrollbarWidth: 'thin',
+          scrollbarColor: mode === 'dark' ? '#333 #000' : '#ccc #f8f9fa',
+        },
+        '*': {
+          scrollbarWidth: 'thin',
+          scrollbarColor: mode === 'dark' ? '#333 #000' : '#ccc #f8f9fa',
+        },
+        '*::-webkit-scrollbar': {
+          width: '8px',
+          height: '8px',
+        },
+        '*::-webkit-scrollbar-track': {
+          background: mode === 'dark' ? '#000' : '#f8f9fa',
+        },
+        '*::-webkit-scrollbar-thumb': {
+          background: mode === 'dark' ? '#333' : '#ccc',
+          borderRadius: '10px',
+          '&:hover': {
+            background: mode === 'dark' ? '#444' : '#bbb',
+          },
+        },
+      }),
+    },
   },
 });
 

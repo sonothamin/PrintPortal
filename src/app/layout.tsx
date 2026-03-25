@@ -13,6 +13,9 @@ const merriweather = Merriweather({
 export const metadata: Metadata = {
   title: "PrintPortal Service",
   description: "Modern Online Printing Portal for Students & Staff",
+  icons: {
+    icon: "/icon.svg",
+  },
 };
 
 export default function RootLayout({

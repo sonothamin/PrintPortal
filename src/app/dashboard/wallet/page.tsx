@@ -93,12 +93,10 @@ export default function WalletPage() {
       });
 
       if (error) {
-        // If the edge function returns a 400 with a JSON error, it's inside `error.context` or similar
-        // Or if it throws a generic JS error
         throw new Error(error.message || 'Failed to connect to redemption server');
       }
 
-      if (!data.success) {
+      if (data.success === false) {
         throw new Error(data.error || 'Invalid or already used token');
       }
 
@@ -107,13 +105,7 @@ export default function WalletPage() {
       fetchData();
     } catch (err: any) {
       // Better UX error handling
-      let message = err.message || 'An unexpected error occurred';
-      
-      // Clean up common technical edge function errors
-      if (message.includes('Invalid token code') || message.includes('already been used')) {
-        message = 'This token is invalid or has already been used.';
-      }
-
+      const message = err.message || 'An unexpected error occurred';
       setStatusMsg({ text: message, type: 'error' });
     } finally {
       setRecharging(false);

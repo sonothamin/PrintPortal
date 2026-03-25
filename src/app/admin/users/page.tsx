@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import AdminPortalLayout from '@/components/AdminPortalLayout';
 import { 
   Typography, 
@@ -47,10 +48,12 @@ interface Profile {
   wallet_balance: number;
   avatar_url: string | null;
   phone_number: string | null;
+  status: 'active' | 'suspended';
   created_at: string;
 }
 
 export default function UserManagementPage() {
+  const router = useRouter();
   const [users, setUsers] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -97,9 +100,30 @@ export default function UserManagementPage() {
     }
   };
 
+  const handleToggleStatus = async (user: Profile) => {
+    const newStatus = user.status === 'suspended' ? 'active' : 'suspended';
+    const confirmMsg = `Are you sure you want to ${newStatus === 'suspended' ? 'SUSPEND' : 'REACTIVATE'} ${user.full_name || user.email}?`;
+    
+    if (!confirm(confirmMsg)) return;
+
+    try {
+      const { data, error } = await supabase.functions.invoke('user-status-update', {
+        body: { user_id: user.id, status: newStatus }
+      });
+
+      if (error || !data?.success) {
+        throw new Error(data?.error || error?.message || 'Failed to update user status');
+      }
+
+      fetchUsers();
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
   const filteredUsers = users.filter(user => 
-    user.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (user.full_name?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+    (user.email?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
     user.phone_number?.includes(searchQuery)
   );
 
@@ -171,6 +195,7 @@ PrintPortal Administration`
                 <TableCell sx={{ fontWeight: 800 }}>BALANCE</TableCell>
                 <TableCell sx={{ fontWeight: 800 }}>CONTACT</TableCell>
                 <TableCell sx={{ fontWeight: 800 }}>JOINED</TableCell>
+                <TableCell sx={{ fontWeight: 800 }}>STATUS</TableCell>
                 <TableCell align="right" sx={{ fontWeight: 800 }}>ACTIONS</TableCell>
               </TableRow>
             </TableHead>
@@ -221,10 +246,37 @@ PrintPortal Administration`
                   <TableCell>
                     <Typography variant="caption" sx={{ fontWeight: 600 }}>{new Date(user.created_at).toLocaleDateString()}</Typography>
                   </TableCell>
+                  <TableCell>
+                    <Chip 
+                      label={user.status || 'active'} 
+                      size="small" 
+                      color={user.status === 'suspended' ? 'error' : 'success'}
+                      variant="outlined"
+                      sx={{ fontWeight: 800, textTransform: 'uppercase', fontSize: '0.65rem' }} 
+                    />
+                  </TableCell>
                   <TableCell align="right">
-                    <IconButton size="small" onClick={() => { setSelectedUser(user); setEditBalance(user.wallet_balance.toString()); }}><Wallet size={18} /></IconButton>
-                    <IconButton size="small"><History size={18} /></IconButton>
-                    <IconButton size="small"><ShieldAlert size={18} /></IconButton>
+                    <Tooltip title="Wallet Adjustment">
+                      <IconButton size="small" onClick={() => { setSelectedUser(user); setEditBalance(user.wallet_balance.toString()); }}>
+                        <Wallet size={18} />
+                      </IconButton>
+                    </Tooltip>
+                    
+                    <Tooltip title={user.status === 'suspended' ? 'Reactivate Account' : 'Suspend Account'}>
+                      <IconButton 
+                        size="small" 
+                        onClick={() => handleToggleStatus(user)}
+                        color={user.status === 'suspended' ? 'success' : 'error'}
+                      >
+                        {user.status === 'suspended' ? <ShieldAlert size={18} /> : <Ban size={18} />}
+                      </IconButton>
+                    </Tooltip>
+
+                    <Tooltip title="View Request History">
+                      <IconButton size="small" onClick={() => router.push(`/admin/queue?user_id=${user.id}`)}>
+                        <History size={18} />
+                      </IconButton>
+                    </Tooltip>
                     <IconButton size="small"><MoreVertical size={18} /></IconButton>
                   </TableCell>
                 </TableRow>

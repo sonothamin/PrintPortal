@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     phone_number TEXT,
     role TEXT DEFAULT 'user',
     wallet_balance DECIMAL(10, 2) DEFAULT 0.00 CHECK (wallet_balance >= 0),
+    status TEXT DEFAULT 'active' CHECK (status IN ('active', 'suspended')),
     avatar_url TEXT,
     created_at TIMESTAMPTZ DEFAULT now() NOT NULL,
     updated_at TIMESTAMPTZ DEFAULT now() NOT NULL
@@ -108,7 +109,7 @@ RETURNS BOOLEAN AS $$
 BEGIN
   RETURN EXISTS (
     SELECT 1 FROM public.profiles 
-    WHERE id = auth.uid() AND role = 'admin'
+    WHERE id = auth.uid() AND role = 'admin' AND status = 'active'
   );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
@@ -268,7 +269,7 @@ ALTER TABLE public.recharge_tokens ENABLE ROW LEVEL SECURITY;
 
 -- Profiles Policies
 CREATE POLICY "Users can view own profile" ON public.profiles FOR SELECT USING (auth.uid() = id);
-CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE USING (auth.uid() = id);
+CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE USING (auth.uid() = id AND status = 'active');
 CREATE POLICY "Admins have full profile access" ON public.profiles FOR ALL TO authenticated USING (public.is_admin()) WITH CHECK (public.is_admin());
 
 -- Kiosk Policies
@@ -276,7 +277,15 @@ CREATE POLICY "Everyone can view kiosks" ON public.kiosks FOR SELECT USING (true
 CREATE POLICY "Admins can manage kiosks" ON public.kiosks FOR ALL TO authenticated USING (public.is_admin()) WITH CHECK (public.is_admin());
 
 -- Print Jobs Policies
-CREATE POLICY "Users can manage own jobs" ON public.print_jobs FOR ALL USING (auth.uid() = user_id);
+CREATE POLICY "Users can view own jobs" ON public.print_jobs FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can create own jobs" ON public.print_jobs FOR INSERT WITH CHECK (
+  auth.uid() = user_id AND 
+  EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND status = 'active')
+);
+CREATE POLICY "Users can delete/cancel own pending jobs" ON public.print_jobs FOR DELETE USING (
+  auth.uid() = user_id AND status = 'pending' AND
+  EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND status = 'active')
+);
 CREATE POLICY "Admins can view all jobs" ON public.print_jobs FOR SELECT TO authenticated USING (public.is_admin());
 CREATE POLICY "Admins can update all jobs" ON public.print_jobs FOR UPDATE TO authenticated USING (public.is_admin()) WITH CHECK (public.is_admin());
 
@@ -359,12 +368,7 @@ DROP POLICY IF EXISTS "Admins can view all documents" ON storage.objects;
 CREATE POLICY "Admins can view all documents"
 ON storage.objects FOR SELECT
 TO authenticated
-USING (bucket_id = 'documents' AND (
-  EXISTS (
-    SELECT 1 FROM public.profiles 
-    WHERE id = auth.uid() AND role = 'admin'
-  )
-));
+USING (bucket_id = 'documents' AND public.is_admin());
 
 -- Triggers for updated_at
 CREATE TRIGGER tr_profiles_updated BEFORE UPDATE ON public.profiles FOR EACH ROW EXECUTE PROCEDURE public.update_modified_column();
