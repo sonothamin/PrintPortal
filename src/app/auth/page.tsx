@@ -31,7 +31,7 @@ import {
 
 export default function AuthPage() {
   const router = useRouter();
-  const [isLogin, setIsLogin] = useState(true);
+  const [view, setView] = useState<'login' | 'signup' | 'forgotPassword'>('login');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [statusMsg, setStatusMsg] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
@@ -49,14 +49,14 @@ export default function AuthPage() {
     setLoading(true);
 
     try {
-      if (isLogin) {
+      if (view === 'login') {
         const { error: authError } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
         if (authError) throw authError;
         router.push('/dashboard');
-      } else {
+      } else if (view === 'signup') {
         // Signup
         if (password !== confirmPassword) {
           throw new Error('Passwords do not match');
@@ -76,7 +76,13 @@ export default function AuthPage() {
         if (authError) throw authError;
         
         setStatusMsg({ text: 'Registration successful! You can now log in.', type: 'success' });
-        setIsLogin(true);
+        setView('login');
+      } else if (view === 'forgotPassword') {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/auth/reset-password`,
+        });
+        if (error) throw error;
+        setStatusMsg({ text: 'Password reset link sent! Please check your email.', type: 'success' });
       }
     } catch (err: any) {
       let message = err.message || 'An error occurred during authentication';
@@ -141,12 +147,14 @@ export default function AuthPage() {
               }}
             >
               <Typography variant="h4" sx={{ fontWeight: 800, mb: 1 }}>
-                {isLogin ? 'Welcome back' : 'Create an account'}
+                {view === 'login' && 'Welcome back'}
+                {view === 'signup' && 'Create an account'}
+                {view === 'forgotPassword' && 'Reset password'}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                {isLogin 
-                  ? 'Please enter your details to sign in.' 
-                  : 'Join the PrintPortal printing network today.'}
+                {view === 'login' && 'Please enter your details to sign in.'}
+                {view === 'signup' && 'Join the PrintPortal printing network today.'}
+                {view === 'forgotPassword' && 'Enter your email to receive a reset link.'}
               </Typography>
             </Box>
 
@@ -159,7 +167,7 @@ export default function AuthPage() {
                   {statusMsg.text}
                 </Alert>
               )}
-              {!isLogin && (
+              {view === 'signup' && (
                 <>
                   <TextField
                     fullWidth
@@ -208,30 +216,32 @@ export default function AuthPage() {
                   ),
                 }}
               />
-              <TextField
-                fullWidth
-                label="Password"
-                type={showPassword ? 'text' : 'password'}
-                margin="normal"
-                variant="outlined"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Lock size={20} color="#6c757d" />
-                    </InputAdornment>
-                  ),
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
-                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                      </IconButton>
-                    </InputAdornment>
-                  )
-                }}
-              />
-              {!isLogin && (
+              {view !== 'forgotPassword' && (
+                <TextField
+                  fullWidth
+                  label="Password"
+                  type={showPassword ? 'text' : 'password'}
+                  margin="normal"
+                  variant="outlined"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Lock size={20} color="#6c757d" />
+                      </InputAdornment>
+                    ),
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+                          {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                        </IconButton>
+                      </InputAdornment>
+                    )
+                  }}
+                />
+              )}
+              {view === 'signup' && (
                 <TextField
                   fullWidth
                   label="Confirm Password"
@@ -250,9 +260,18 @@ export default function AuthPage() {
                 />
               )}
 
-              {isLogin && (
+              {view === 'login' && (
                 <Box sx={{ textAlign: 'right', mt: 1 }}>
-                  <Link href="#" variant="body2" sx={{ fontWeight: 600 }}>
+                  <Link 
+                    component="button"
+                    variant="body2" 
+                    sx={{ fontWeight: 600, cursor: 'pointer' }}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setView('forgotPassword');
+                      setStatusMsg(null);
+                    }}
+                  >
                     Forgot password?
                   </Link>
                 </Box>
@@ -273,23 +292,61 @@ export default function AuthPage() {
                   '&:hover': { bgcolor: 'text.secondary' }
                 }}
               >
-                {loading ? <CircularProgress size={24} color="inherit" /> : (isLogin ? 'Sign In' : 'Sign Up')}
+                {loading ? <CircularProgress size={24} color="inherit" /> : (
+                  view === 'login' ? 'Sign In' : (view === 'signup' ? 'Sign Up' : 'Send Reset Link')
+                )}
               </Button>
 
               <Box sx={{ mt: 3, textAlign: 'center' }}>
                 <Typography variant="body2" color="text.secondary">
-                  {isLogin ? "Don't have an account? " : "Already have an account? "}
-                  <Link 
-                    component="button"
-                    variant="body2" 
-                    sx={{ fontWeight: 700, cursor: 'pointer' }}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setIsLogin(!isLogin);
-                    }}
-                  >
-                    {isLogin ? 'Sign up' : 'Sign in'}
-                  </Link>
+                  {view === 'login' && (
+                    <>
+                      Don't have an account?{' '}
+                      <Link 
+                        component="button"
+                        variant="body2" 
+                        sx={{ fontWeight: 700, cursor: 'pointer' }}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setView('signup');
+                          setStatusMsg(null);
+                        }}
+                      >
+                        Sign up
+                      </Link>
+                    </>
+                  )}
+                  {view === 'signup' && (
+                    <>
+                      Already have an account?{' '}
+                      <Link 
+                        component="button"
+                        variant="body2" 
+                        sx={{ fontWeight: 700, cursor: 'pointer' }}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setView('login');
+                          setStatusMsg(null);
+                        }}
+                      >
+                        Sign in
+                      </Link>
+                    </>
+                  )}
+                  {view === 'forgotPassword' && (
+                    <Link 
+                      component="button"
+                      variant="body2" 
+                      sx={{ fontWeight: 700, cursor: 'pointer' }}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setView('login');
+                        setStatusMsg(null);
+                      }}
+                    >
+                      Back to login
+                    </Link>
+                  )}
                 </Typography>
               </Box>
             </Box>
