@@ -6,26 +6,22 @@ import {
   Typography, 
   Grid, 
   Paper, 
-  Button, 
-  TextField, 
+  Button,
   Container,
-  IconButton,
+  CircularProgress,
   Dialog,
   DialogContent,
-  CircularProgress,
   Alert
 } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { 
   Printer, 
-  Copy, 
   QrCode, 
-  X, 
   ChevronLeft, 
   CheckCircle2, 
-  AlertCircle,
-  Hash
+  Hash,
+  AlertCircle
 } from 'lucide-react';
 import { Html5Qrcode } from 'html5-qrcode';
 
@@ -101,12 +97,12 @@ export default function KioskPage() {
                 }
               }
             },
-            (error: any) => {
+            () => {
               // Ignore standard frame-by-frame scan failures
             }
           );
-        } catch (err) {
-          console.error("Camera start failed:", err);
+        } catch {
+      console.error('Kiosk auth error');
           setErrorMsg("Camera access denied or unavailable.");
         }
       }
@@ -123,11 +119,6 @@ export default function KioskPage() {
 
   const handleNumpad = (val: string) => {
     if (releaseCode.length < 6) setReleaseCode(prev => prev + val);
-    setErrorMsg('');
-  };
-
-  const handleClear = () => {
-    setReleaseCode('');
     setErrorMsg('');
   };
 

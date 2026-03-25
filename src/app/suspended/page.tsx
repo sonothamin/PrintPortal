@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Box, Typography, Button, Container, Paper, alpha } from '@mui/material';
-import { ShieldAlert, LogOut, Mail } from 'lucide-react';
+import { Box, Typography, Button, Container, alpha } from '@mui/material';
+import { ShieldAlert, LogOut } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 

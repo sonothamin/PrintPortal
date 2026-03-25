@@ -59,7 +59,7 @@ const getDesignTokens = (mode: 'light' | 'dark'): ThemeOptions => ({
       },
     },
     MuiCssBaseline: {
-      styleOverrides: (theme) => ({
+      styleOverrides: {
         ':root': {
           colorScheme: mode,
         },
@@ -89,9 +89,10 @@ const getDesignTokens = (mode: 'light' | 'dark'): ThemeOptions => ({
             background: mode === 'dark' ? '#444' : '#bbb',
           },
         },
-      }),
+      },
     },
   },
 });
 
+// export const useAppTheme = () => useTheme<typeof theme>();
 export const createAppTheme = (mode: 'light' | 'dark') => createTheme(getDesignTokens(mode));

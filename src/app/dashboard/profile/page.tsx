@@ -9,10 +9,10 @@ import {
   Grid, 
   Card, 
   CardContent, 
-  Button, 
-  TextField, 
-  Avatar, 
+  Button,
   IconButton,
+  TextField,
+  Avatar,
   CircularProgress,
   Divider,
   Alert
@@ -43,13 +43,12 @@ export default function ProfilePage() {
 
   const [email, setEmail] = useState('');
 
-  useEffect(() => {
-    fetchProfile();
-  }, []);
-
   const fetchProfile = React.useCallback(async () => {
     const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return;
+    if (!session) {
+      setLoading(false); // Ensure loading is set to false even if no session
+      return;
+    }
     
     setEmail(session.user.email || '');
 

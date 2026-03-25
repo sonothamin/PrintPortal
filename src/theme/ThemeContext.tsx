@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, useMemo } from 'react';
+import React, { createContext, useContext, useEffect, useState, useMemo, useCallback } from 'react';
 
 type ThemeMode = 'light' | 'dark';
 
@@ -24,18 +24,18 @@ export function ThemeContextProvider({ children }: { children: React.ReactNode }
     }
   }, []);
 
-  const toggleTheme = () => {
+  const toggleTheme = useCallback(() => {
     const newMode = mode === 'light' ? 'dark' : 'light';
     setModeState(newMode);
     localStorage.setItem('theme-mode', newMode);
-  };
+  }, [mode]);
 
   const setMode = (newMode: ThemeMode) => {
     setModeState(newMode);
     localStorage.setItem('theme-mode', newMode);
   };
 
-  const value = useMemo(() => ({ mode, toggleTheme, setMode }), [mode]);
+  const value = useMemo(() => ({ mode, toggleTheme, setMode }), [mode, toggleTheme]);
 
   return (
     <ThemeContext.Provider value={value}>

@@ -46,12 +46,11 @@ export default function WalletPage() {
   const [balance, setBalance] = useState<number>(0);
   const [totalSpent, setTotalSpent] = useState<number>(0);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [token, setToken] = useState('');
+  const [rechargeAmount, setRechargeAmount] = useState<string>(''); // Renamed from token
   const [recharging, setRecharging] = useState(false);
   const [statusMsg, setStatusMsg] = useState({ text: '', type: '' });
-  const [loading, setLoading] = useState(true);
   const [qrOpen, setQrOpen] = useState(false);
-  const [scanning, setScanning] = useState(false);
+  const [isScanning, setIsScanning] = useState(false); // Renamed from scanning
 
   const fetchData = React.useCallback(async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -70,14 +69,13 @@ export default function WalletPage() {
       const total = spentRes.data.reduce((acc, curr) => acc + Math.abs(Number(curr.amount)), 0);
       setTotalSpent(total);
     }
-    setLoading(false);
   }, []);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  const handleRecharge = async () => {
+  const handleRecharge = React.useCallback(async () => { // Added useCallback
     setRecharging(true);
     setStatusMsg({ text: '', type: '' });
 
@@ -85,11 +83,11 @@ export default function WalletPage() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('Not authenticated');
 
-      if (!token) throw new Error('Please enter a valid token code');
+      if (!rechargeAmount) throw new Error('Please enter a valid token code'); // Using rechargeAmount
 
       // Call the highly secure Edge Function
       const { data, error } = await supabase.functions.invoke('redeem-token', {
-        body: { token_code: token }
+        body: { token_code: rechargeAmount } // Using rechargeAmount
       });
 
       if (error) {
@@ -101,7 +99,7 @@ export default function WalletPage() {
       }
 
       setStatusMsg({ text: `Success! ৳${data.amount_added} added to your wallet.`, type: 'success' });
-      setToken('');
+      setRechargeAmount(''); // Clearing rechargeAmount
       fetchData();
     } catch (err: any) {
       // Better UX error handling
@@ -110,7 +108,7 @@ export default function WalletPage() {
     } finally {
       setRecharging(false);
     }
-  };
+  }, [rechargeAmount, fetchData]); // Added dependencies
 
   const scannerRef = useRef<Html5Qrcode | null>(null);
 
@@ -119,6 +117,7 @@ export default function WalletPage() {
     let timeoutId: NodeJS.Timeout;
 
     if (qrOpen) {
+      setIsScanning(true); // Set scanning state
       // Small delay to ensure the Dialog's DOM is rendered
       timeoutId = setTimeout(() => {
         const element = document.getElementById("reader");
@@ -133,12 +132,14 @@ export default function WalletPage() {
           { facingMode: "environment" }, 
           config, 
           (decodedText) => {
-            setToken(decodedText);
+            setRechargeAmount(decodedText); // Set rechargeAmount
             setQrOpen(false);
+            setIsScanning(false); // Stop scanning state
           },
           () => {} // ignore scan errors
         ).catch(err => {
           console.error("Scanning failed", err);
+          setIsScanning(false); // Stop scanning state on error
         });
       }, 300);
     }
@@ -153,11 +154,12 @@ export default function WalletPage() {
         } else {
           try {
             scannerRef.current.clear();
-          } catch (e) {
+          } catch {
             // ignore cleanup errors if already cleared
           }
         }
       }
+      setIsScanning(false); // Ensure scanning state is false on unmount/close
     };
   }, [qrOpen]);
 
@@ -166,11 +168,11 @@ export default function WalletPage() {
   useEffect(() => {
     if (qrOpen) justScanned.current = true;
     
-    if (token && token.length > 5 && !qrOpen && !recharging && justScanned.current) {
+    if (rechargeAmount && rechargeAmount.length > 5 && !qrOpen && !recharging && justScanned.current) { // Using rechargeAmount
        justScanned.current = false;
        handleRecharge();
     }
-  }, [token, qrOpen, recharging]);
+  }, [rechargeAmount, qrOpen, recharging, handleRecharge]); // Added handleRecharge to dependencies
 
   return (
     <DashboardLayout>
@@ -232,8 +234,9 @@ export default function WalletPage() {
                   <TextField 
                     fullWidth 
                     placeholder="XXXX-XXXX-XXXX" 
-                    value={token}
-                    onChange={(e) => setToken(e.target.value)}
+                    value={rechargeAmount} // Using rechargeAmount
+                    onChange={() => setRechargeAmount(prev => prev.slice(0, 6))}
+ // Setting rechargeAmount
                     InputProps={{
                       startAdornment: (
                         <InputAdornment position="start">
@@ -246,7 +249,7 @@ export default function WalletPage() {
                   <Button 
                     variant="contained" 
                     size="large" 
-                    disabled={!token || recharging}
+                    disabled={!rechargeAmount || recharging}
                     onClick={handleRecharge}
                     sx={{ 
                       bgcolor: 'text.primary', 
@@ -362,7 +365,7 @@ export default function WalletPage() {
         <DialogTitle sx={{ fontWeight: 800 }}>Scan Recharge QR</DialogTitle>
         <DialogContent sx={{ textAlign: 'center', p: 0 }}>
            <Box id="reader" sx={{ width: '100%', aspectRatio: '1/1', bgcolor: '#000', '& video': { objectFit: 'cover !important', width: '100% !important', height: '100% !important' } }} />
-           {scanning && (
+           {isScanning && (
              <Box sx={{ py: 3, position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 10, bgcolor: 'rgba(0,0,0,0.5)', borderRadius: 2, px: 4 }}>
                <CircularProgress size={30} sx={{ color: 'white', mb: 1 }} />
                <Typography variant="body2" sx={{ color: 'white', fontWeight: 700 }}>Processing...</Typography>

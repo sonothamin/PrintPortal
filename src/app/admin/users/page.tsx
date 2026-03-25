@@ -53,20 +53,17 @@ interface Profile {
 export default function UserManagementPage() {
   const router = useRouter();
   const [users, setUsers] = useState<Profile[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedUser, setSelectedUser] = useState<Profile | null>(null);
   const [editBalance, setEditBalance] = useState<string>('0');
 
   const fetchUsers = React.useCallback(async () => {
-    setLoading(true);
     const { data } = await supabase
       .from('profiles')
       .select('*')
       .order('created_at', { ascending: false });
     
     if (data) setUsers(data);
-    setLoading(false);
   }, []);
 
   useEffect(() => {

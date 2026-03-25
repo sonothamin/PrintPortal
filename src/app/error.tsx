@@ -5,10 +5,8 @@ import { Box, Typography, Button, Container, alpha } from '@mui/material';
 import { AlertTriangle, Home, RefreshCcw } from 'lucide-react';
 
 export default function Error({
-  error,
   reset,
 }: {
-  error: Error & { digest?: string };
   reset: () => void;
 }) {
   return (

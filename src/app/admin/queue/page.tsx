@@ -43,29 +43,13 @@ import {
 import { supabase } from '@/lib/supabase';
 import { Tooltip } from '@mui/material';
 
-interface PrintJob {
-  id: string;
-  user_id: string;
-  file_name: string;
-  file_path: string;
-  page_count: number;
-  is_color: boolean;
-  status: 'pending' | 'processing' | 'completed' | 'canceled';
-  created_at: string;
-  cost: number;
-  release_code: string;
-  profiles: {
-    full_name: string;
-  };
-}
 
 function GlobalQueueContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const userIdFilter = searchParams.get('user_id');
 
-  const [jobs, setJobs] = useState<PrintJob[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [jobs, setJobs] = useState<any[]>([]);
   const [releasing, setReleasing] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -78,7 +62,6 @@ function GlobalQueueContent() {
   const theme = useTheme();
 
   const fetchJobs = React.useCallback(async () => {
-    setLoading(true);
     let query = supabase
       .from('print_jobs')
       .select('*, profiles(full_name)')
@@ -94,7 +77,6 @@ function GlobalQueueContent() {
 
     const { data } = await query;
     if (data) setJobs(data as any);
-    setLoading(false);
   }, [filterStatus, userIdFilter]);
 
   useEffect(() => {

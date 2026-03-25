@@ -12,7 +12,6 @@ import {
   Divider,
   AppBar,
   Toolbar,
-  IconButton,
   Avatar,
   CircularProgress,
   Menu,
@@ -24,13 +23,11 @@ import {
   Printer,
   UploadCloud,
   Wallet,
-  Database,
   Zap,
+  Database,
   ShieldCheck,
   LayoutDashboard,
-  LogOut,
-  Mail,
-  User as UserIcon
+  LogOut
 } from 'lucide-react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
