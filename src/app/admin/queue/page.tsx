@@ -7,14 +7,12 @@ import {
   Typography, 
   Box, 
   Card, 
-  CardContent, 
   Table, 
   TableBody, 
   TableCell, 
   TableContainer, 
   TableHead, 
   TableRow, 
-  Paper, 
   Chip, 
   IconButton, 
   TextField, 
@@ -33,7 +31,6 @@ import {
   Search, 
   Eye, 
   Download, 
-  MoreVertical, 
   Clock, 
   CheckCircle2, 
   XCircle,
@@ -80,7 +77,7 @@ function GlobalQueueContent() {
   const [statusMsg, setStatusMsg] = useState<{ text: string, type: 'success' | 'error' | 'info' | 'warning' } | null>(null);
   const theme = useTheme();
 
-  const fetchJobs = async () => {
+  const fetchJobs = React.useCallback(async () => {
     setLoading(true);
     let query = supabase
       .from('print_jobs')
@@ -95,14 +92,14 @@ function GlobalQueueContent() {
       query = query.eq('user_id', userIdFilter);
     }
 
-    const { data, error } = await query;
+    const { data } = await query;
     if (data) setJobs(data as any);
     setLoading(false);
-  };
+  }, [filterStatus, userIdFilter]);
 
   useEffect(() => {
     fetchJobs();
-  }, [filterStatus, userIdFilter]);
+  }, [fetchJobs]);
 
   const handleRelease = async (jobId: string) => {
     setReleasing(jobId);

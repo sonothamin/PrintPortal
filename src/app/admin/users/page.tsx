@@ -7,7 +7,6 @@ import {
   Typography, 
   Box, 
   Card, 
-  CardContent, 
   Table, 
   TableBody, 
   TableCell, 
@@ -29,7 +28,6 @@ import {
 import { 
   Search, 
   UserPlus, 
-  Edit3, 
   ShieldAlert, 
   Wallet, 
   History, 
@@ -60,20 +58,20 @@ export default function UserManagementPage() {
   const [selectedUser, setSelectedUser] = useState<Profile | null>(null);
   const [editBalance, setEditBalance] = useState<string>('0');
 
-  const fetchUsers = async () => {
+  const fetchUsers = React.useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('profiles')
       .select('*')
       .order('created_at', { ascending: false });
     
     if (data) setUsers(data);
     setLoading(false);
-  };
+  }, []);
 
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [fetchUsers]);
 
   const handleUpdateBalance = async () => {
     if (!selectedUser) return;

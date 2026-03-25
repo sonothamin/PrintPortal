@@ -4,18 +4,15 @@ import React, { useEffect, useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { supabase } from '@/lib/supabase';
 import {
-  Grid,
-  Typography,
-  Card,
-  CardContent,
-  Box,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
+  Typography, 
+  Card, 
+  Box, 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableContainer, 
+  TableHead, 
+  TableRow, 
   Chip,
   alpha,
   TextField,
@@ -24,8 +21,6 @@ import {
 } from '@mui/material';
 import {
   Search,
-  Filter,
-  ArrowUpDown,
   FileText,
   Printer
 } from 'lucide-react';
@@ -45,22 +40,23 @@ export default function HistoryPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
 
-  useEffect(() => {
-    const fetchJobs = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+  const fetchJobs = React.useCallback(async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
 
-      const { data, error } = await supabase
-        .from('print_jobs')
-        .select('*')
-        .eq('user_id', session.user.id)
-        .order('created_at', { ascending: false });
+    const { data } = await supabase
+      .from('print_jobs')
+      .select('*')
+      .eq('user_id', session.user.id)
+      .order('created_at', { ascending: false });
 
-      if (data) setJobs(data);
-      setLoading(false);
-    };
-    fetchJobs();
+    if (data) setJobs(data);
+    setLoading(false);
   }, []);
+
+  useEffect(() => {
+    fetchJobs();
+  }, [fetchJobs]);
 
   const filteredJobs = jobs.filter(job => 
     job.file_name.toLowerCase().includes(search.toLowerCase()) ||

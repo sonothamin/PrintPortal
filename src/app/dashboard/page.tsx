@@ -16,7 +16,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
   Chip,
   alpha,
   IconButton,
@@ -25,13 +24,9 @@ import {
   DialogTitle
 } from '@mui/material';
 import {
-  UploadCloud,
-  Clock,
-  CheckCircle2,
-  AlertCircle,
-  ExternalLink,
-  Wallet,
-  CreditCard,
+  UploadCloud, 
+  ExternalLink, 
+  Wallet, 
   Zap,
   Printer,
   QrCode,
@@ -65,36 +60,37 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [qrJob, setQrJob] = useState<PrintJob | null>(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+  const fetchData = React.useCallback(async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
 
-      const [jobsRes, profileRes, kiosksRes] = await Promise.all([
-        supabase
-          .from('print_jobs')
-          .select('*')
-          .eq('user_id', session.user.id)
-          .order('created_at', { ascending: false })
-          .limit(5),
-        supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single(),
-        supabase
-          .from('kiosks')
-          .select('name, status')
-          .limit(5)
-      ]);
+    const [jobsRes, profileRes, kiosksRes] = await Promise.all([
+      supabase
+        .from('print_jobs')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .order('created_at', { ascending: false })
+        .limit(5),
+      supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .single(),
+      supabase
+        .from('kiosks')
+        .select('name, status')
+        .limit(5)
+    ]);
 
-      if (jobsRes.data) setJobs(jobsRes.data);
-      if (profileRes.data) setProfile(profileRes.data);
-      if (kiosksRes.data) setKiosks(kiosksRes.data as Kiosk[]);
-      setLoading(false);
-    };
-    fetchData();
+    if (jobsRes.data) setJobs(jobsRes.data);
+    if (profileRes.data) setProfile(profileRes.data);
+    if (kiosksRes.data) setKiosks(kiosksRes.data as Kiosk[]);
+    setLoading(false);
   }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const getGreeting = () => {
     const hour = new Date().getHours();

@@ -28,13 +28,10 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Tooltip,
-  Divider
+  Tooltip
 } from '@mui/material';
 import { 
   Ticket, 
-  Download, 
-  PlusCircle, 
   Trash2, 
   FileSpreadsheet,
   CheckCircle2,
@@ -44,8 +41,7 @@ import {
   History as HistoryIcon,
   BarChart3,
   Printer as PrinterIcon,
-  QrCode,
-  X
+  QrCode
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -83,25 +79,24 @@ export default function TokenManagementPage() {
   const [generateValue, setGenerateValue] = useState(100);
   const [generateCount, setGenerateCount] = useState(10);
   const [status, setStatus] = useState({ text: '', type: 'success' as 'success' | 'error' });
-  const [printOpen, setPrintOpen] = useState(false);
   const [circulationFilter, setCirculationFilter] = useState<'all' | 'active' | 'used'>('all');
   const [circulationSort, setCirculationSort] = useState<'newest' | 'oldest' | 'value_high' | 'value_low'>('newest');
   const [qrToken, setQrToken] = useState<Token | null>(null);
 
-  const fetchTokens = async () => {
+  const fetchTokens = React.useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('recharge_tokens')
       .select('*, profiles:used_by(full_name)')
       .order('created_at', { ascending: false });
     
     if (data) setTokens(data);
     setLoading(false);
-  };
+  }, []);
 
   useEffect(() => {
     fetchTokens();
-  }, []);
+  }, [fetchTokens]);
 
   const generateTokens = async () => {
     setStatus({ text: '', type: 'success' });

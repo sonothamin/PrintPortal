@@ -18,11 +18,10 @@ import {
   Paper
 } from '@mui/material';
 import {
-  Settings,
-  DollarSign,
-  TrendingUp,
-  Save,
-  RefreshCw,
+  DollarSign, 
+  TrendingUp, 
+  Save, 
+  RefreshCw, 
   Percent
 } from 'lucide-react';
 
@@ -30,7 +29,7 @@ export default function EconomySettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState({ text: '', type: 'info' as 'info' | 'success' | 'error' });
-  
+
   const [pricing, setPricing] = useState({
     mono_price_per_page: 0,
     color_price_per_page: 0,
@@ -38,11 +37,7 @@ export default function EconomySettingsPage() {
     color_cost_per_page: 0
   });
 
-  useEffect(() => {
-    fetchSettings();
-  }, []);
-
-  const fetchSettings = async () => {
+  const fetchSettings = React.useCallback(async () => {
     setLoading(true);
     const { data, error } = await supabase
       .from('settings')
@@ -56,7 +51,11 @@ export default function EconomySettingsPage() {
       console.error('Error fetching settings:', error);
     }
     setLoading(false);
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchSettings();
+  }, [fetchSettings]);
 
   const handleSave = async () => {
     setSaving(true);

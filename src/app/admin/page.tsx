@@ -113,7 +113,7 @@ export default function AdminDashboard() {
           <Grid container spacing={2}>
             {loading ? (
               <Grid size={{ xs: 12 }}><Typography>Loading kiosks...</Typography></Grid>
-            ) : kiosks.length > 0 ? kiosks.map((k, i) => (
+            ) : kiosks.length > 0 ? kiosks.map((k) => (
               <Grid size={{ xs: 12, sm: 6 }} key={k.id}>
                 <Card variant="outlined" sx={{ borderRadius: 3 }}>
                   <CardContent sx={{ p: 2.5 }}>

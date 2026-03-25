@@ -47,7 +47,7 @@ export default function ProfilePage() {
     fetchProfile();
   }, []);
 
-  const fetchProfile = async () => {
+  const fetchProfile = React.useCallback(async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
     
@@ -78,7 +78,11 @@ export default function ProfilePage() {
       console.error('Error fetching profile:', error);
     }
     setLoading(false);
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
 
   const handleSave = async () => {
     setSaving(true);

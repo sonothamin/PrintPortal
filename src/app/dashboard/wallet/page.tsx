@@ -53,7 +53,7 @@ export default function WalletPage() {
   const [qrOpen, setQrOpen] = useState(false);
   const [scanning, setScanning] = useState(false);
 
-  const fetchData = async () => {
+  const fetchData = React.useCallback(async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
 
@@ -71,11 +71,11 @@ export default function WalletPage() {
       setTotalSpent(total);
     }
     setLoading(false);
-  };
+  }, []);
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
   const handleRecharge = async () => {
     setRecharging(true);

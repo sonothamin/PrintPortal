@@ -1,30 +1,27 @@
 'use client';
 
 import React, { useState } from 'react';
-import { 
-  Box, 
-  Grid, 
-  Typography, 
-  TextField, 
-  Button, 
-  Paper, 
-  Link, 
+import {
+  Box,
+  Grid,
+  Typography,
+  TextField,
+  Button,
+  Link,
   Container,
   InputAdornment,
   IconButton,
-  Divider,
   Alert,
   CircularProgress
 } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { 
-  Eye, 
-  EyeOff, 
-  Mail, 
-  Lock, 
-  Printer, 
-  ChevronRight,
+import {
+  Eye,
+  EyeOff,
+  Mail,
+  Lock,
+  Printer,
   Phone,
   User
 } from 'lucide-react';
@@ -62,7 +59,7 @@ export default function AuthPage() {
           throw new Error('Passwords do not match');
         }
 
-        const { data, error: authError } = await supabase.auth.signUp({
+        const { error: authError } = await supabase.auth.signUp({
           email,
           password,
           options: {

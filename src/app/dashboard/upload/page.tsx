@@ -5,7 +5,6 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { 
   Box, 
   Typography, 
-  Paper, 
   Button, 
   Grid, 
   Divider, 
@@ -27,13 +26,9 @@ import {
   UploadCloud, 
   FileText, 
   X, 
-  CheckCircle2, 
   Printer,
-  ChevronRight,
-  Zap,
   ShieldCheck
 } from 'lucide-react';
-import { PDFDocument } from 'pdf-lib';
 import { supabase } from '@/lib/supabase';
 
 export default function UploadPage() {
@@ -148,9 +143,6 @@ export default function UploadPage() {
 
   const handleGeneratePrintJob = async () => {
     if (files.length === 0) return;
-    
-    // Dynamically calculate cost based on current UI settings (used elsewhere if needed)
-    const currentTotalCost = files.reduce((acc, curr) => acc + (curr.pages * (isColor ? pricing.color_price_per_page : pricing.mono_price_per_page) * copies), 0);
     
     setUploading(true);
     setStatus({ text: 'Finalizing queue...', type: 'info' });
