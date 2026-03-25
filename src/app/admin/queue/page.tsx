@@ -188,26 +188,44 @@ function GlobalQueueContent() {
 
   return (
     <AdminPortalLayout>
-      <Box sx={{ mb: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-        <Box>
-          <Typography variant="h4" sx={{ fontWeight: 900, letterSpacing: -1.5, mb: 1 }}>
-            Global Print Queue
-          </Typography>
-          <Typography color="text.secondary">
-            Manage and monitor all print requests across the PrintPortal network.
-          </Typography>
-        </Box>
-        <Box sx={{ display: 'flex', gap: 2 }}>
-          <Button variant="outlined" color="error" onClick={() => setClearJobsModalOpen(true)} startIcon={<Trash2 size={18} />} sx={{ fontWeight: 700, borderRadius: 2 }}>
-            Clear Queue Uploads
-          </Button>
-          <Button variant="outlined" color="error" onClick={() => setClearModalOpen(true)} startIcon={<AlertTriangle size={18} />} sx={{ fontWeight: 700, borderRadius: 2 }}>
-            Clear Temp Files
-          </Button>
-          <Button variant="contained" onClick={fetchJobs} sx={{ fontWeight: 700, borderRadius: 2 }}>
-            Refresh Data
-          </Button>
-        </Box>
+      {/* Page Header */}
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h4" sx={{ fontWeight: 900, letterSpacing: -1.5, mb: 0.5 }}>
+          Global Print Queue
+        </Typography>
+        <Typography color="text.secondary">
+          Manage and monitor all print requests across the PrintPortal network.
+        </Typography>
+      </Box>
+
+      {/* Action Buttons */}
+      <Box sx={{ mb: 3, display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
+        <Button
+          variant="outlined"
+          color="error"
+          onClick={() => setClearJobsModalOpen(true)}
+          startIcon={<Trash2 size={16} />}
+          sx={{ fontWeight: 700, borderRadius: 2, flex: { xs: 1, sm: 'unset' }, minWidth: 0 }}
+        >
+          Clear Queue
+        </Button>
+        <Button
+          variant="outlined"
+          color="error"
+          onClick={() => setClearModalOpen(true)}
+          startIcon={<AlertTriangle size={16} />}
+          sx={{ fontWeight: 700, borderRadius: 2, flex: { xs: 1, sm: 'unset' }, minWidth: 0 }}
+        >
+          Clear Temp
+        </Button>
+        <Button
+          variant="contained"
+          onClick={fetchJobs}
+          startIcon={<RefreshCw size={16} />}
+          sx={{ fontWeight: 700, borderRadius: 2, flex: { xs: 1, sm: 'unset' }, minWidth: 0 }}
+        >
+          Refresh
+        </Button>
       </Box>
 
       {statusMsg && (
@@ -238,8 +256,8 @@ function GlobalQueueContent() {
       )}
 
       <Card variant="outlined" sx={{ borderRadius: 4, overflow: 'hidden', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' }}>
-        <Box sx={{ p: 3, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', gap: 3, flexWrap: 'wrap', alignItems: 'center', bgcolor: (theme) => alpha(theme.palette.background.default, 0.5) }}>
-          <Box sx={{ position: 'relative', flexGrow: 1, maxWidth: 400 }}>
+        <Box sx={{ p: { xs: 2, sm: 3 }, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center', bgcolor: (theme) => alpha(theme.palette.background.default, 0.5) }}>
+          <Box sx={{ position: 'relative', flexGrow: 1, minWidth: { xs: '100%', sm: 0 } }}>
             <Search size={18} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }} />
             <TextField 
               fullWidth 
@@ -250,14 +268,14 @@ function GlobalQueueContent() {
               sx={{ '& .MuiOutlinedInput-root': { pl: 5, borderRadius: 2, bgcolor: 'background.paper' } }}
             />
           </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Filter size={18} style={{ opacity: 0.5 }} />
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minWidth: { xs: '100%', sm: 'auto' } }}>
+            <Filter size={18} style={{ opacity: 0.5, flexShrink: 0 }} />
             <TextField
               select
               size="small"
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              sx={{ minWidth: 150, '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: 'background.paper' } }}
+              sx={{ flexGrow: 1, '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: 'background.paper' } }}
             >
               <MenuItem value="all">All Statuses</MenuItem>
               <MenuItem value="pending">Pending</MenuItem>
@@ -268,7 +286,7 @@ function GlobalQueueContent() {
           </Box>
         </Box>
 
-        <TableContainer>
+        <TableContainer sx={{ overflowX: 'auto' }}>
           <Table>
             <TableHead sx={{ bgcolor: (theme) => alpha(theme.palette.text.primary, 0.02) }}>
               <TableRow>

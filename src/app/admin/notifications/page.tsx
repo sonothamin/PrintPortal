@@ -144,7 +144,7 @@ export default function NotificationManagement() {
 
   return (
     <AdminPortalLayout>
-      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+      <Box sx={{ mb: 4, display: 'flex', flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', md: 'flex-start' }, gap: 2 }}>
         <Box>
           <Typography variant="h4" sx={{ fontWeight: 900, letterSpacing: -1, mb: 1 }}>
             Alert Management
@@ -157,14 +157,51 @@ export default function NotificationManagement() {
           variant="contained" 
           startIcon={<Plus size={18} />}
           onClick={() => setOpen(true)}
-          sx={{ borderRadius: 3, px: 3, py: 1.2, fontWeight: 700, bgcolor: 'text.primary', color: 'background.default' }}
+          fullWidth={false}
+          sx={{ 
+            borderRadius: 3, px: 3, py: 1.2, fontWeight: 700, 
+            bgcolor: 'text.primary', color: 'background.default',
+            width: { xs: '100%', md: 'auto' },
+            flexShrink: 0
+          }}
         >
           New Notification
         </Button>
       </Box>
 
-      {/* Stats Summary */}
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 3, mb: 4 }}>
+      {/* Stats — compact bar on mobile, full cards on desktop */}
+      <Box sx={{ display: { xs: 'block', md: 'none' }, mb: 4 }}>
+        <Card sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', overflow: 'hidden' }}>
+          <Box sx={{ display: 'flex', alignItems: 'stretch' }}>
+            {[
+              { label: 'Total', value: notifications.length, icon: <Bell size={16} /> },
+              { label: 'Broadcast', value: notifications.filter(n => !n.user_id).length, icon: <Users size={16} /> },
+              { label: 'Targeted', value: notifications.filter(n => n.user_id).length, icon: <User size={16} /> },
+            ].map((stat, i) => (
+              <Box
+                key={i}
+                sx={{
+                  flex: 1,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  py: 2,
+                  px: 1,
+                  borderRight: i < 2 ? '1px solid' : 'none',
+                  borderColor: 'divider',
+                }}
+              >
+                <Box sx={{ color: 'text.secondary', mb: 0.5 }}>{stat.icon}</Box>
+                <Typography variant="h6" sx={{ fontWeight: 900, lineHeight: 1 }}>{stat.value}</Typography>
+                <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', mt: 0.25 }}>{stat.label}</Typography>
+              </Box>
+            ))}
+          </Box>
+        </Card>
+      </Box>
+
+      {/* Stats — full card grid on md+ */}
+      <Box sx={{ display: { xs: 'none', md: 'grid' }, gridTemplateColumns: 'repeat(3, 1fr)', gap: 3, mb: 4 }}>
         {[
           { label: 'Total Alerts', value: notifications.length, icon: <Bell size={20} />, color: 'primary' },
           { label: 'Broadcasts', value: notifications.filter(n => !n.user_id).length, icon: <Users size={20} />, color: 'success' },
@@ -186,7 +223,7 @@ export default function NotificationManagement() {
         ))}
       </Box>
 
-      <TableContainer component={Card} sx={{ borderRadius: 4, border: '1px solid', borderColor: 'divider' }}>
+      <TableContainer component={Card} sx={{ borderRadius: 4, border: '1px solid', borderColor: 'divider', overflowX: 'auto' }}>
         <Table>
           <TableHead>
             <TableRow sx={{ bgcolor: alpha(theme.palette.text.primary, 0.02) }}>
