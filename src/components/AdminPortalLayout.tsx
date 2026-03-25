@@ -43,12 +43,14 @@ import { useThemeMode } from '@/theme/ThemeContext';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import NotificationPanel from './NotificationPanel';
 
 const drawerWidth = 260;
 
 const adminMenuItems = [
   { text: 'Overview', icon: <LayoutDashboard size={20} />, path: '/admin' },
   { text: 'Global Queue', icon: <Printer size={20} />, path: '/admin/queue' },
+  { text: 'Notifications', icon: <Bell size={20} />, path: '/admin/notifications' },
   { text: 'Users', icon: <Users size={20} />, path: '/admin/users' },
   { text: 'Tokens', icon: <Ticket size={20} />, path: '/admin/tokens' },
   { text: 'Economy', icon: <Settings size={20} />, path: '/admin/settings' },
@@ -295,7 +297,7 @@ export default function AdminPortalLayout({ children }: { children: React.ReactN
               <IconButton onClick={toggleTheme} size="small" aria-label="Toggle theme">
                 {mode === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
               </IconButton>
-              <IconButton size="small" aria-label="Notifications"><Bell size={20} /></IconButton>
+              <NotificationPanel />
               <Divider orientation="vertical" flexItem sx={{ mx: 1, height: 24, alignSelf: 'center' }} />
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, cursor: 'pointer' }} onClick={handleMenu} aria-label="Admin settings">
                 <Avatar 

@@ -32,7 +32,6 @@ import {
   History as HistoryIcon,
   ShieldCheck,
   Sun,
-  Bell,
   User
 } from 'lucide-react';
 import { useThemeMode } from '@/theme/ThemeContext';
@@ -40,6 +39,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useEffect } from 'react';
+import NotificationPanel from './NotificationPanel';
 
 const drawerWidth = 260;
 
@@ -241,9 +241,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <IconButton onClick={toggleTheme} size="small" aria-label="Toggle theme">
                 {mode === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
               </IconButton>
-              <IconButton size="small" aria-label="Notifications">
-                <Bell size={20} />
-              </IconButton>
+              <NotificationPanel />
               <IconButton onClick={handleMenu} aria-label="User profile">
                 <Avatar 
                   src={avatarUrl || undefined}

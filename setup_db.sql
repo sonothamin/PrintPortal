@@ -91,6 +91,18 @@ CREATE TABLE IF NOT EXISTS public.recharge_tokens (
     updated_at TIMESTAMPTZ DEFAULT now() NOT NULL
 );
 
+-- Notifications: System and user alerts
+CREATE TABLE IF NOT EXISTS public.notifications (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE, -- NULL for broadcast
+    title TEXT NOT NULL,
+    message TEXT NOT NULL,
+    type TEXT DEFAULT 'info' CHECK (type IN ('info', 'success', 'warning', 'error', 'system')),
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMPTZ DEFAULT now() NOT NULL,
+    updated_at TIMESTAMPTZ DEFAULT now() NOT NULL
+);
+
 --------------------------------------------------------------------------------
 -- 3. PERFORMANCE INDEXES
 --------------------------------------------------------------------------------
@@ -98,6 +110,7 @@ CREATE INDEX IF NOT EXISTS idx_print_jobs_user_status_created ON public.print_jo
 CREATE INDEX IF NOT EXISTS idx_transactions_user_created ON public.transactions(user_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_recharge_tokens_code ON public.recharge_tokens(code);
 CREATE INDEX IF NOT EXISTS idx_recharge_tokens_is_used ON public.recharge_tokens(is_used) WHERE is_used = FALSE;
+CREATE INDEX IF NOT EXISTS idx_notifications_user_read ON public.notifications(user_id, is_read, created_at DESC);
 
 --------------------------------------------------------------------------------
 -- 4. SECURITY FUNCTIONS (SECURITY DEFINER)
@@ -266,6 +279,7 @@ ALTER TABLE public.kiosks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.print_jobs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.transactions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.recharge_tokens ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 
 -- Profiles Policies
 CREATE POLICY "Users can view own profile" ON public.profiles FOR SELECT USING (auth.uid() = id);
@@ -299,6 +313,12 @@ CREATE POLICY "Admins can manage tokens" ON public.recharge_tokens FOR ALL TO au
 -- Settings Policies
 CREATE POLICY "Everyone can view settings" ON public.settings FOR SELECT TO authenticated USING (true);
 CREATE POLICY "Admins can manage settings" ON public.settings FOR ALL TO authenticated USING (public.is_admin()) WITH CHECK (public.is_admin());
+
+-- Notification Policies
+CREATE POLICY "Users can view own or broadcast notifications" ON public.notifications
+FOR SELECT USING (auth.uid() = user_id OR user_id IS NULL);
+CREATE POLICY "Admins have full notification access" ON public.notifications
+FOR ALL TO authenticated USING (public.is_admin()) WITH CHECK (public.is_admin());
 
 --------------------------------------------------------------------------------
 -- 7. SCHEMA PERMISSIONS & GRANTS
@@ -376,3 +396,4 @@ CREATE TRIGGER tr_kiosks_updated BEFORE UPDATE ON public.kiosks FOR EACH ROW EXE
 CREATE TRIGGER tr_print_jobs_updated BEFORE UPDATE ON public.print_jobs FOR EACH ROW EXECUTE PROCEDURE public.update_modified_column();
 CREATE TRIGGER tr_settings_updated BEFORE UPDATE ON public.settings FOR EACH ROW EXECUTE PROCEDURE public.update_modified_column();
 CREATE TRIGGER tr_recharge_tokens_updated BEFORE UPDATE ON public.recharge_tokens FOR EACH ROW EXECUTE PROCEDURE public.update_modified_column();
+CREATE TRIGGER tr_notifications_updated BEFORE UPDATE ON public.notifications FOR EACH ROW EXECUTE PROCEDURE public.update_modified_column();
