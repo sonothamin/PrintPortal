@@ -116,11 +116,12 @@ serve(async (req: any) => {
       throw new Error('Failed to generate secure document URL')
     }
 
-    // 4. Return success and the File URL
+    // 4. Return success and the File URL along with job_id
     return new Response(JSON.stringify({
       success: true,
       new_balance: rpcResult.new_balance,
-      file_url: fileData.signedUrl
+      file_url: fileData.signedUrl,
+      job_id: finalJobId  // Add job_id here
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
