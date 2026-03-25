@@ -130,7 +130,7 @@ export default function UserManagementPage() {
 
   return (
     <AdminPortalLayout>
-      <Box sx={{ mb: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+      <Box sx={{ mb: 4, display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'flex-end' }, gap: 2 }}>
         <Box>
           <Typography variant="h4" sx={{ fontWeight: 900, letterSpacing: -1.5, mb: 1 }}>
             User Management
@@ -142,7 +142,7 @@ export default function UserManagementPage() {
         <Button 
           variant="contained" 
           startIcon={<UserPlus size={18} />} 
-          sx={{ fontWeight: 700, borderRadius: 2 }}
+          sx={{ fontWeight: 700, borderRadius: 2, width: { xs: '100%', sm: 'auto' } }}
           onClick={() => {
             const subject = encodeURIComponent('You\'re Invited to PrintPortal!');
             const body = encodeURIComponent(
@@ -187,7 +187,7 @@ PrintPortal Administration`
           </Box>
         </Box>
 
-        <TableContainer>
+        <TableContainer sx={{ overflowX: 'auto' }}>
           <Table>
             <TableHead sx={{ bgcolor: (theme) => alpha(theme.palette.text.primary, 0.02) }}>
               <TableRow>

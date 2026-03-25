@@ -214,12 +214,12 @@ export default function EconomySettingsPage() {
 
               <Divider sx={{ my: 4 }} />
 
-              <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', flexDirection: { xs: 'column', sm: 'row' }, gap: 1.5 }}>
                 <Button 
                   variant="outlined" 
                   startIcon={<RefreshCw size={18} />}
                   onClick={fetchSettings}
-                  sx={{ borderRadius: 2 }}
+                  sx={{ borderRadius: 2, width: { xs: '100%', sm: 'auto' } }}
                 >
                   Reset
                 </Button>
@@ -228,9 +228,16 @@ export default function EconomySettingsPage() {
                   startIcon={saving ? <CircularProgress size={18} color="inherit" /> : <Save size={18} />}
                   onClick={handleSave}
                   disabled={saving}
-                  sx={{ bgcolor: 'text.primary', color: 'background.default', borderRadius: 2, px: 4, '&:hover': { bgcolor: 'text.secondary' } }}
+                  sx={{ 
+                    bgcolor: 'text.primary', 
+                    color: 'background.default', 
+                    borderRadius: 2, 
+                    px: 4, 
+                    width: { xs: '100%', sm: 'auto' },
+                    '&:hover': { bgcolor: 'text.secondary' } 
+                  }}
                 >
-                  Save Changes
+                  {saving ? 'Saving...' : 'Save Changes'}
                 </Button>
               </Box>
             </CardContent>
