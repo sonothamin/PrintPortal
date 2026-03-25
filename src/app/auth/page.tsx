@@ -25,6 +25,12 @@ import {
   Phone,
   User
 } from 'lucide-react';
+import { 
+  isValidEmail, 
+  isValidPhone, 
+  sanitizeString, 
+  ERROR_MESSAGES 
+} from '@/lib/validation';
 
 export default function AuthPage() {
   const router = useRouter();
@@ -40,15 +46,37 @@ export default function AuthPage() {
   const [fullName, setFullName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
 
+  // Validation States
+  const [emailError, setEmailError] = useState('');
+  const [phoneError, setPhoneError] = useState('');
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatusMsg(null);
     setLoading(true);
 
     try {
+      // 1. Sanitization
+      const cleanEmail = sanitizeString(email);
+      const cleanFullName = sanitizeString(fullName);
+      const cleanPhone = sanitizeString(phoneNumber);
+
+      // 2. Validation
+      let hasError = false;
+      if (!isValidEmail(cleanEmail)) {
+        setEmailError(ERROR_MESSAGES.INVALID_EMAIL);
+        hasError = true;
+      }
+      if (view === 'signup' && cleanPhone && !isValidPhone(cleanPhone)) {
+        setPhoneError(ERROR_MESSAGES.INVALID_PHONE);
+        hasError = true;
+      }
+
+      if (hasError) return;
+
       if (view === 'login') {
         const { error: authError } = await supabase.auth.signInWithPassword({
-          email,
+          email: cleanEmail,
           password,
         });
         if (authError) throw authError;
@@ -60,12 +88,12 @@ export default function AuthPage() {
         }
 
         const { error: authError } = await supabase.auth.signUp({
-          email,
+          email: cleanEmail,
           password,
           options: {
             data: {
-              full_name: fullName,
-              phone_number: phoneNumber,
+              full_name: cleanFullName,
+              phone_number: cleanPhone,
             }
           }
         });
@@ -187,7 +215,12 @@ export default function AuthPage() {
                     margin="normal"
                     variant="outlined"
                     value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    onChange={(e) => {
+                      setPhoneNumber(e.target.value);
+                      setPhoneError('');
+                    }}
+                    error={Boolean(phoneError)}
+                    helperText={phoneError}
                     InputProps={{
                       startAdornment: (
                         <InputAdornment position="start">
@@ -204,7 +237,12 @@ export default function AuthPage() {
                 margin="normal"
                 variant="outlined"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setEmailError('');
+                }}
+                error={Boolean(emailError)}
+                helperText={emailError}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">

@@ -15,7 +15,8 @@ import {
   Avatar,
   CircularProgress,
   Divider,
-  Alert
+  Alert,
+  InputAdornment
 } from '@mui/material';
 import { 
   Camera, 
@@ -25,6 +26,11 @@ import {
   Phone, 
   ShieldCheck 
 } from 'lucide-react';
+import { 
+  isValidPhone, 
+  sanitizeString, 
+  ERROR_MESSAGES 
+} from '@/lib/validation';
 
 interface UserProfile {
   full_name: string;
@@ -39,6 +45,7 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
+  const [phoneError, setPhoneError] = useState('');
   const [status, setStatus] = useState({ text: '', type: 'info' as 'info' | 'success' | 'error' });
 
   const [email, setEmail] = useState('');
@@ -88,14 +95,25 @@ export default function ProfilePage() {
     setStatus({ text: '', type: 'info' });
 
     try {
+      // 1. Sanitization
+      const cleanName = sanitizeString(fullName);
+      const cleanPhone = sanitizeString(phone);
+
+      // 2. Validation
+      if (cleanPhone && !isValidPhone(cleanPhone)) {
+        setPhoneError(ERROR_MESSAGES.INVALID_PHONE);
+        return;
+      }
+      setPhoneError('');
+
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('Not authenticated');
 
       const { error } = await supabase
         .from('profiles')
         .update({ 
-          full_name: fullName, 
-          phone_number: phone,
+          full_name: cleanName, 
+          phone_number: cleanPhone,
           updated_at: new Date().toISOString()
         })
         .eq('id', session.user.id);
@@ -245,9 +263,18 @@ export default function ProfilePage() {
                     fullWidth 
                     label="Phone Number" 
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
+                    onChange={(e) => {
+                      setPhone(e.target.value);
+                      setPhoneError('');
+                    }}
+                    error={Boolean(phoneError)}
+                    helperText={phoneError}
                     InputProps={{
-                      startAdornment: <Phone size={20} style={{ marginRight: 12, opacity: 0.5 }} />
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <Phone size={20} style={{ color: '#000' }} />
+                        </InputAdornment>
+                      ),
                     }}
                   />
                 </Grid>

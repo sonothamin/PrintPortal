@@ -376,8 +376,9 @@ export default function KioskPage() {
             <Button
               fullWidth
               variant="contained"
-              disabled={releaseCode.length !== 6}
+              disabled={releaseCode.length !== 6 || processing}
               onClick={handlePrint}
+              startIcon={processing ? <CircularProgress size={30} color="inherit" /> : null}
               sx={{
                 mt: 4,
                 height: 80,
@@ -390,7 +391,7 @@ export default function KioskPage() {
                 '&.Mui-disabled': { bgcolor: '#333', color: '#666' }
               }}
             >
-              PRINT JOB
+              {processing ? 'PREPARING...' : 'PRINT JOB'}
             </Button>
           </Box>
         )}

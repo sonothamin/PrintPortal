@@ -16,6 +16,7 @@
     "@mui/material": "^7.3.9",
     "@mui/material-nextjs": "^7.3.9",
     "@supabase/supabase-js": "^2.47.0",
+    "@vercel/analytics": "^2.0.1",
     "html5-qrcode": "^2.3.8",
     "lucide-react": "^0.469.0",
     "next": "^15.1.0",

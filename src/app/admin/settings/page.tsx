@@ -24,6 +24,7 @@ import {
   RefreshCw, 
   Percent
 } from 'lucide-react';
+import { isValidPrice, sanitizePrice, ERROR_MESSAGES } from '@/lib/validation';
 
 export default function EconomySettingsPage() {
   const [loading, setLoading] = useState(true);
@@ -36,6 +37,8 @@ export default function EconomySettingsPage() {
     mono_cost_per_page: 0,
     color_cost_per_page: 0
   });
+
+  const [priceErrors, setPriceErrors] = useState<Record<string, string>>({});
 
   const fetchSettings = React.useCallback(async () => {
     setLoading(true);
@@ -62,8 +65,26 @@ export default function EconomySettingsPage() {
     setStatus({ text: '', type: 'info' });
 
     try {
+      // 1. Validation & Sanitization
+      const errors: Record<string, string> = {};
+      const cleanPricing: any = {};
+      
+      Object.entries(pricing).forEach(([key, val]) => {
+        if (!isValidPrice(val)) {
+          errors[key] = ERROR_MESSAGES.INVALID_PRICE;
+        } else {
+          cleanPricing[key] = sanitizePrice(val);
+        }
+      });
+
+      if (Object.keys(errors).length > 0) {
+        setPriceErrors(errors);
+        return;
+      }
+      setPriceErrors({});
+
       const { data, error } = await supabase.functions.invoke('admin-actions', {
-        body: { action: 'update-settings', pricing }
+        body: { action: 'update-settings', pricing: cleanPricing }
       });
 
       if (error || !data?.success) {
@@ -129,7 +150,12 @@ export default function EconomySettingsPage() {
                     label="Price per Page"
                     type="number"
                     value={pricing.mono_price_per_page}
-                    onChange={(e) => setPricing({ ...pricing, mono_price_per_page: Number(e.target.value) })}
+                    onChange={(e) => {
+                      setPricing({ ...pricing, mono_price_per_page: Number(e.target.value) });
+                      setPriceErrors({ ...priceErrors, mono_price_per_page: '' });
+                    }}
+                    error={Boolean(priceErrors.mono_price_per_page)}
+                    helperText={priceErrors.mono_price_per_page}
                     sx={{ mb: 3 }}
                     InputProps={{ startAdornment: <InputAdornment position="start">৳</InputAdornment> }}
                   />
@@ -138,7 +164,13 @@ export default function EconomySettingsPage() {
                     label="Operation Cost per Page"
                     type="number"
                     value={pricing.mono_cost_per_page}
-                    onChange={(e) => setPricing({ ...pricing, mono_cost_per_page: Number(e.target.value) })}
+                    onChange={(e) => {
+                      setPricing({ ...pricing, mono_cost_per_page: Number(e.target.value) });
+                      setPriceErrors({ ...priceErrors, mono_cost_per_page: '' });
+                    }}
+                    error={Boolean(priceErrors.mono_cost_per_page)}
+                    helperText={priceErrors.mono_cost_per_page}
+                    sx={{ mb: 3 }}
                     InputProps={{ startAdornment: <InputAdornment position="start">৳</InputAdornment> }}
                   />
                 </Grid>
@@ -154,7 +186,12 @@ export default function EconomySettingsPage() {
                     label="Price per Page"
                     type="number"
                     value={pricing.color_price_per_page}
-                    onChange={(e) => setPricing({ ...pricing, color_price_per_page: Number(e.target.value) })}
+                    onChange={(e) => {
+                      setPricing({ ...pricing, color_price_per_page: Number(e.target.value) });
+                      setPriceErrors({ ...priceErrors, color_price_per_page: '' });
+                    }}
+                    error={Boolean(priceErrors.color_price_per_page)}
+                    helperText={priceErrors.color_price_per_page}
                     sx={{ mb: 3 }}
                     InputProps={{ startAdornment: <InputAdornment position="start">৳</InputAdornment> }}
                   />
@@ -163,7 +200,13 @@ export default function EconomySettingsPage() {
                     label="Operation Cost per Page"
                     type="number"
                     value={pricing.color_cost_per_page}
-                    onChange={(e) => setPricing({ ...pricing, color_cost_per_page: Number(e.target.value) })}
+                    onChange={(e) => {
+                      setPricing({ ...pricing, color_cost_per_page: Number(e.target.value) });
+                      setPriceErrors({ ...priceErrors, color_cost_per_page: '' });
+                    }}
+                    error={Boolean(priceErrors.color_cost_per_page)}
+                    helperText={priceErrors.color_cost_per_page}
+                    sx={{ mb: 3 }}
                     InputProps={{ startAdornment: <InputAdornment position="start">৳</InputAdornment> }}
                   />
                 </Grid>

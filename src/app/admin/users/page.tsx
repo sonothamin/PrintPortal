@@ -23,7 +23,8 @@ import {
   DialogContent,
   DialogActions,
   alpha,
-  Tooltip
+  Tooltip,
+  CircularProgress
 } from '@mui/material';
 import { 
   Search, 
@@ -37,6 +38,7 @@ import {
   Phone
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { isValidPrice } from '@/lib/validation';
 
 interface Profile {
   id: string;
@@ -56,6 +58,8 @@ export default function UserManagementPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedUser, setSelectedUser] = useState<Profile | null>(null);
   const [editBalance, setEditBalance] = useState<string>('0');
+  const [updatingBalance, setUpdatingBalance] = useState(false);
+  const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
 
   const fetchUsers = React.useCallback(async () => {
     const { data } = await supabase
@@ -72,9 +76,10 @@ export default function UserManagementPage() {
 
   const handleUpdateBalance = async () => {
     if (!selectedUser) return;
+    setUpdatingBalance(true);
     
     const amount = parseFloat(editBalance);
-    if (isNaN(amount) || amount < 0) {
+    if (!isValidPrice(amount)) {
       alert('Please enter a valid non-negative number.');
       return;
     }
@@ -100,6 +105,7 @@ export default function UserManagementPage() {
     const confirmMsg = `Are you sure you want to ${newStatus === 'suspended' ? 'SUSPEND' : 'REACTIVATE'} ${user.full_name || user.email}?`;
     
     if (!confirm(confirmMsg)) return;
+    setUpdatingStatus(user.id);
 
     try {
       const { data, error } = await supabase.functions.invoke('user-status-update', {
@@ -262,8 +268,9 @@ PrintPortal Administration`
                         size="small" 
                         onClick={() => handleToggleStatus(user)}
                         color={user.status === 'suspended' ? 'success' : 'error'}
+                        disabled={updatingStatus === user.id}
                       >
-                        {user.status === 'suspended' ? <ShieldAlert size={18} /> : <Ban size={18} />}
+                        {updatingStatus === user.id ? <CircularProgress size={18} color="inherit" /> : (user.status === 'suspended' ? <ShieldAlert size={18} /> : <Ban size={18} />)}
                       </IconButton>
                     </Tooltip>
 
@@ -301,9 +308,16 @@ PrintPortal Administration`
           />
         </DialogContent>
         <DialogActions sx={{ p: 3 }}>
-          <Button onClick={() => setSelectedUser(null)}>Cancel</Button>
-          <Button onClick={handleUpdateBalance} variant="contained" color="primary" sx={{ fontWeight: 800 }}>
-            Confirm Update
+          <Button onClick={() => setSelectedUser(null)} disabled={updatingBalance}>Cancel</Button>
+          <Button 
+            onClick={handleUpdateBalance} 
+            variant="contained" 
+            color="primary" 
+            disabled={updatingBalance}
+            startIcon={updatingBalance ? <CircularProgress size={18} color="inherit" /> : null}
+            sx={{ fontWeight: 800 }}
+          >
+            {updatingBalance ? 'Updating...' : 'Confirm Update'}
           </Button>
         </DialogActions>
       </Dialog>

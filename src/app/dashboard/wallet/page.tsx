@@ -246,21 +246,22 @@ export default function WalletPage() {
                     }}
                     sx={{ mb: 2 }}
                   />
-                  <Button 
-                    variant="contained" 
-                    size="large" 
-                    disabled={!rechargeAmount || recharging}
-                    onClick={handleRecharge}
-                    sx={{ 
-                      bgcolor: 'text.primary', 
-                      color: 'background.default',
-                      borderRadius: 2, 
-                      px: 4,
-                      '&:hover': { bgcolor: 'text.secondary' } 
-                    }}
-                  >
-                    {recharging ? 'Processing...' : 'Apply Token'}
-                  </Button>
+                    <Button 
+                      variant="contained" 
+                      size="large" 
+                      disabled={!rechargeAmount || recharging}
+                      onClick={handleRecharge}
+                      startIcon={recharging ? <CircularProgress size={20} color="inherit" /> : <Zap size={20} />}
+                      sx={{ 
+                        bgcolor: 'text.primary', 
+                        color: 'background.default',
+                        borderRadius: 2, 
+                        px: 4,
+                        '&:hover': { bgcolor: 'text.secondary' } 
+                      }}
+                    >
+                      {recharging ? 'Processing...' : 'Apply Token'}
+                    </Button>
                   
                   {statusMsg.text && (
                     <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 1, color: statusMsg.type === 'success' ? 'success.main' : 'error.main' }}>

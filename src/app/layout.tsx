@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
 import { Merriweather } from 'next/font/google';
 import ThemeRegistry from '@/theme/ThemeRegistry';
+import { Analytics } from "@vercel/analytics/next"
 import "./globals.css";
 
 const merriweather = Merriweather({
@@ -29,6 +30,7 @@ export default function RootLayout({
         <AppRouterCacheProvider>
           <ThemeRegistry>
             {children}
+            <Analytics />
           </ThemeRegistry>
         </AppRouterCacheProvider>
       </body>

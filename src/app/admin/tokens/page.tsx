@@ -79,6 +79,7 @@ export default function TokenManagementPage() {
   const [generateValue, setGenerateValue] = useState(100);
   const [generateCount, setGenerateCount] = useState(10);
   const [status, setStatus] = useState({ text: '', type: 'success' as 'success' | 'error' });
+  const [generating, setGenerating] = useState(false);
   const [circulationFilter, setCirculationFilter] = useState<'all' | 'active' | 'used'>('all');
   const [circulationSort, setCirculationSort] = useState<'newest' | 'oldest' | 'value_high' | 'value_low'>('newest');
   const [qrToken, setQrToken] = useState<Token | null>(null);
@@ -99,6 +100,7 @@ export default function TokenManagementPage() {
   }, [fetchTokens]);
 
   const generateTokens = async () => {
+    setGenerating(true);
     setStatus({ text: '', type: 'success' });
     try {
       const { data, error } = await supabase.functions.invoke('generate-tokens', {
@@ -122,6 +124,8 @@ export default function TokenManagementPage() {
         message = 'Server rejected the request. Please verify your admin permissions.';
       }
       setStatus({ text: message, type: 'error' });
+    } finally {
+      setGenerating(false);
     }
   };
 
@@ -298,10 +302,11 @@ export default function TokenManagementPage() {
                     size="large" 
                     fullWidth 
                     onClick={generateTokens}
-                    startIcon={<Ticket size={24} />}
+                    disabled={generating}
+                    startIcon={generating ? <CircularProgress size={24} color="inherit" /> : <Ticket size={24} />}
                     sx={{ py: 2, fontWeight: 900, fontSize: '1.1rem', borderRadius: 3 }}
                   >
-                    Generate Batch Now
+                    {generating ? 'GENERATING BATCH...' : 'Generate Batch Now'}
                   </Button>
                 </Box>
               </CardContent>

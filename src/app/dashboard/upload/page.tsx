@@ -41,6 +41,7 @@ export default function UploadPage() {
     cost: number 
   }[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false);
   const [pricing, setPricing] = useState({
     mono_price_per_page: 2.00,
     color_price_per_page: 10.00
@@ -74,6 +75,7 @@ export default function UploadPage() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
+      setAnalyzing(true);
       setStatus({ text: 'Analyzing documents...', type: 'info' });
       const selectedFiles = Array.from(e.target.files);
       let successCount = 0;
@@ -134,6 +136,7 @@ export default function UploadPage() {
       if (successCount > 0) {
         setStatus({ text: `${successCount} document(s) verified and ready.`, type: 'success' });
       }
+      setAnalyzing(false);
     }
   };
 
@@ -221,12 +224,12 @@ export default function UploadPage() {
               opacity: uploading ? 0.6 : 1
             }}
           >
-            <input type="file" hidden multiple accept=".pdf" onChange={handleFileChange} />
+            <input type="file" hidden multiple accept=".pdf" onChange={handleFileChange} disabled={uploading || analyzing} />
             <Box sx={{ mb: 2, color: 'text.secondary', display: 'flex', justifyContent: 'center' }}>
-              <UploadCloud size={48} />
+              {analyzing ? <CircularProgress size={48} color="inherit" /> : <UploadCloud size={48} />}
             </Box>
             <Typography variant="h6" component="div" sx={{ fontWeight: 800, mb: 1 }}>
-              Click to upload or drag and drop
+              {analyzing ? 'Verifying PDF structure...' : 'Click to upload or drag and drop'}
             </Typography>
             <Typography variant="body2" component="div" color="text.secondary">
               PDF documents only (Max 50MB)
