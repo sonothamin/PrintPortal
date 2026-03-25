@@ -51,6 +51,7 @@ const adminMenuItems = [
   { text: 'Overview', icon: <LayoutDashboard size={20} />, path: '/admin' },
   { text: 'Global Queue', icon: <Printer size={20} />, path: '/admin/queue' },
   { text: 'Notifications', icon: <Bell size={20} />, path: '/admin/notifications' },
+  { text: 'Kiosks', icon: <Activity size={20} />, path: '/admin/kiosk' },
   { text: 'Users', icon: <Users size={20} />, path: '/admin/users' },
   { text: 'Tokens', icon: <Ticket size={20} />, path: '/admin/tokens' },
   { text: 'Economy', icon: <Settings size={20} />, path: '/admin/settings' },
