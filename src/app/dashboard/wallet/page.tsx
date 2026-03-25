@@ -31,7 +31,8 @@ import {
   QrCode, 
   History, 
   Zap,
-  CheckCircle2
+  CheckCircle2,
+  RotateCw
 } from 'lucide-react';
 
 interface Transaction {
@@ -46,15 +47,20 @@ export default function WalletPage() {
   const [balance, setBalance] = useState<number>(0);
   const [totalSpent, setTotalSpent] = useState<number>(0);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [rechargeAmount, setRechargeAmount] = useState<string>(''); // Renamed from token
+  const [rechargeAmount, setRechargeAmount] = useState<string>(''); 
   const [recharging, setRecharging] = useState(false);
   const [statusMsg, setStatusMsg] = useState({ text: '', type: '' });
   const [qrOpen, setQrOpen] = useState(false);
-  const [isScanning, setIsScanning] = useState(false); // Renamed from scanning
+  const [isScanning, setIsScanning] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const fetchData = React.useCallback(async () => {
+    setRefreshing(true);
     const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return;
+    if (!session) {
+      setRefreshing(false);
+      return;
+    }
 
     const [profileRes, txRes, spentRes] = await Promise.all([
       supabase.from('profiles').select('wallet_balance').eq('id', session.user.id).single(),
@@ -69,6 +75,7 @@ export default function WalletPage() {
       const total = spentRes.data.reduce((acc, curr) => acc + Math.abs(Number(curr.amount)), 0);
       setTotalSpent(total);
     }
+    setRefreshing(false);
   }, []);
 
   useEffect(() => {
@@ -176,13 +183,39 @@ export default function WalletPage() {
 
   return (
     <DashboardLayout>
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" sx={{ fontWeight: 800, mb: 1 }}>
-          My Wallet
-        </Typography>
-        <Typography color="text.secondary">
-          Manage your printing credits and top up via secure tokens.
-        </Typography>
+      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+        <Box>
+          <Typography variant="h4" sx={{ fontWeight: 800, mb: 1 }}>
+            My Wallet
+          </Typography>
+          <Typography color="text.secondary">
+            Manage your printing credits and top up via secure tokens.
+          </Typography>
+        </Box>
+        <Button 
+          size="small" 
+          variant="outlined" 
+          onClick={fetchData}
+          disabled={refreshing}
+          startIcon={
+            <RotateCw 
+              size={16} 
+              style={{ animation: refreshing ? 'spin 1.1s linear infinite' : 'none' }} 
+            />
+          }
+          sx={{ 
+            fontWeight: 800, 
+            borderRadius: 2, 
+            borderColor: 'divider', 
+            color: 'text.primary',
+            '@keyframes spin': {
+              '0%': { transform: 'rotate(0deg)' },
+              '100%': { transform: 'rotate(360deg)' }
+            }
+          }}
+        >
+          Refresh
+        </Button>
       </Box>
 
       <Grid container spacing={4}>
@@ -212,7 +245,7 @@ export default function WalletPage() {
               </Typography>
               <Divider sx={{ borderColor: 'rgba(255,255,255,0.1)', mb: 3 }} />
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.5)' }}>Total Spent</Typography>
+                <Typography variant="caption" sx={{ opacity: 0.6 }}>Total Spent</Typography>
                 <Typography variant="caption" sx={{ fontWeight: 700 }}>৳{totalSpent.toFixed(2)}</Typography>
               </Box>
             </CardContent>
@@ -234,9 +267,8 @@ export default function WalletPage() {
                   <TextField 
                     fullWidth 
                     placeholder="XXXX-XXXX-XXXX" 
-                    value={rechargeAmount} // Using rechargeAmount
-                    onChange={() => setRechargeAmount(prev => prev.slice(0, 6))}
- // Setting rechargeAmount
+                    value={rechargeAmount}
+                    onChange={(e) => setRechargeAmount(e.target.value.toUpperCase())}
                     InputProps={{
                       startAdornment: (
                         <InputAdornment position="start">

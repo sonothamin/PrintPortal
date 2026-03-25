@@ -32,6 +32,7 @@ import {
   History as HistoryIcon,
   ShieldCheck,
   Sun,
+  Bell,
   User
 } from 'lucide-react';
 import { useThemeMode } from '@/theme/ThemeContext';
@@ -46,6 +47,7 @@ const drawerWidth = 260;
 const menuItems = [
   { text: 'Dashboard', icon: <LayoutDashboard size={20} />, path: '/dashboard' },
   { text: 'Upload Documents', icon: <UploadCloud size={20} />, path: '/dashboard/upload' },
+  { text: 'Notifications', icon: <Bell size={20} />, path: '/dashboard/notifications' },
   { text: 'Print History', icon: <HistoryIcon size={20} />, path: '/dashboard/history' },
   { text: 'My Wallet', icon: <Wallet size={20} />, path: '/dashboard/wallet' },
 ];

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { 
   Box, 
   Typography, 
@@ -40,6 +41,7 @@ export default function NotificationPanel() {
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
   const theme = useTheme();
 
   const fetchNotifications = useCallback(async () => {
@@ -235,7 +237,13 @@ export default function NotificationPanel() {
 
         <Divider />
         <Box sx={{ p: 1.5, textAlign: 'center' }}>
-          <Button fullWidth size="small" color="inherit" sx={{ fontWeight: 800, opacity: 0.6 }}>
+          <Button 
+            fullWidth 
+            size="small" 
+            color="inherit" 
+            onClick={() => { handleClose(); router.push('/dashboard/notifications'); }}
+            sx={{ fontWeight: 800, opacity: 0.6 }}
+          >
             View Full History
           </Button>
         </Box>

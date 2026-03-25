@@ -17,12 +17,14 @@ import {
   alpha,
   TextField,
   InputAdornment,
-  CircularProgress
+  CircularProgress,
+  Button
 } from '@mui/material';
 import {
   Search,
   FileText,
-  Printer
+  Printer,
+  RotateCw
 } from 'lucide-react';
 
 interface PrintJob {
@@ -95,6 +97,31 @@ export default function HistoryPage() {
           <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>
             {filteredJobs.length} JOBS FOUND
           </Typography>
+          <Button 
+            size="small" 
+            variant="outlined" 
+            onClick={fetchJobs}
+            disabled={loading}
+            startIcon={
+              <RotateCw 
+                size={16} 
+                style={{ animation: loading ? 'spin 1.1s linear infinite' : 'none' }} 
+              />
+            }
+            sx={{ 
+              ml: 2, 
+              fontWeight: 800, 
+              borderRadius: 2, 
+              borderColor: 'divider', 
+              color: 'text.primary',
+              '@keyframes spin': {
+                '0%': { transform: 'rotate(0deg)' },
+                '100%': { transform: 'rotate(360deg)' }
+              }
+            }}
+          >
+            Refresh
+          </Button>
         </Box>
         <TableContainer>
           <Table>
