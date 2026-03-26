@@ -173,7 +173,7 @@ export default function WalletPage() {
                 <Grid size={{ xs: 12, sm: 8 }}>
                   <TextField
                     fullWidth
-                    placeholder="VOUCHER-CODE"
+                    placeholder="Enter Token Here"
                     value={rechargeAmount}
                     onChange={(e) => setRechargeAmount(e.target.value.toUpperCase())}
                     InputProps={{ sx: { borderRadius: 3, height: 56 } }}
@@ -191,8 +191,11 @@ export default function WalletPage() {
               </Grid>
 
               <Button
-                fullWidth variant="contained" size="large"
-                disabled={!rechargeAmount || recharging}
+                fullWidth
+                variant="contained"
+                size="large"
+                // Disable if less than 8 chars, is recharging, or contains non-alphanumeric chars
+                disabled={rechargeAmount.length < 8 || recharging || !/^[A-Z0-9]+$/.test(rechargeAmount)}
                 onClick={() => handleRecharge()}
                 sx={{ mt: 2, py: 1.8, bgcolor: 'text.primary', color: 'background.paper', fontWeight: 900, borderRadius: 3 }}
               >
@@ -253,14 +256,14 @@ export default function WalletPage() {
       </Card>
 
       {/* QR Scanner Dialog */}
-      <Dialog 
-        open={qrOpen} 
-        onClose={() => setQrOpen(false)} 
-        maxWidth="xs" 
-        fullWidth 
+      <Dialog
+        open={qrOpen}
+        onClose={() => setQrOpen(false)}
+        maxWidth="xs"
+        fullWidth
         PaperProps={{ sx: { borderRadius: 2, aspectRatio: '1/1', overflow: 'hidden' } }}
       >
-        <DialogTitle sx={{ fontWeight: 900, pb: 0 }}>Scan Token QR Code</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 900, pb: 1 }}>Scan Token QR Code</DialogTitle>
         <DialogContent sx={{ p: 0, display: 'flex', flexDirection: 'column' }}>
           <Box id="reader" sx={{ flexGrow: 1, width: '100%', '& video': { objectFit: 'cover !important', height: '100% !important' } }} />
         </DialogContent>
