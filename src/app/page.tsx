@@ -178,9 +178,6 @@ export default function LandingPage() {
               ) : (
                 <>
                   <Link href="/auth" passHref>
-                    <Button color="inherit" sx={{ fontWeight: 600 }}>Login</Button>
-                  </Link>
-                  <Link href="/auth" passHref>
                     <Button variant="contained" sx={{ bgcolor: 'text.primary', color: 'background.default', borderRadius: 1.5, px: 3 }}>Get Started</Button>
                   </Link>
                 </>
