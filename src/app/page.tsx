@@ -287,12 +287,12 @@ export default function LandingPage() {
       {/* Footer */}
       <Box sx={{ py: 6, mt: 'auto', borderTop: '1px solid', borderColor: 'divider', bgcolor: 'background.default' }}>
         <Container maxWidth="lg">
-          <Typography variant="caption" color="text.secondary" align="center" sx={{ display: 'block', fontStyle: 'italic', mb: 3 }}>
+          <Typography variant="caption" color="text.secondary" align="center" sx={{ display: 'block', fontStyle: 'italic', mb: 1 }}>
             PrintPortal - because your time matters.
           </Typography>
-          <Typography variant="caption" color="text.secondary" align="center" sx={{ display: 'block', opacity: 0.5 }}>
+          <Typography variant="caption" color="text.secondary" align="center" sx={{ display: 'block'}}>
             © 2026 PrintPortal - Sonoth Amin  • 
-           <Typography variant="body2"><Link href="/legals">Legals</Link></Typography> 
+           <Link color="text.primary"  href="/legals">Legals</Link>
           </Typography>
         </Container>
       </Box>
