@@ -297,8 +297,11 @@ export default function KioskPage() {
 
         {mode === 'print' && (
           <Box sx={{ width: '100%', maxWidth: 600, mx: 'auto' }}>
-            <Typography variant="h3" sx={{ textAlign: 'center', fontWeight: 900, mb: 4 }}>
-              ENTER RELEASE CODE
+            <Typography variant="h3" sx={{ textAlign: 'center', fontWeight: 900, mb: 1 }}>
+              Enter Release Code
+            </Typography>
+             <Typography color="text.secondary" variant="h3" sx={{ textAlign: 'center', fontWeight: 900, mb: 2 }}>
+              You can find it in your user dashboard at print-portal-ten.vercel.app/dashboard/history
             </Typography>
 
             {errorMsg && (
