@@ -272,7 +272,7 @@ export default function ProfilePage() {
                     InputProps={{
                       startAdornment: (
                         <InputAdornment position="start">
-                          <Phone size={20} style={{ color: '#000' }} />
+                          <Phone size={20} style={{ marginRight: 12, opacity: 0.5 }} />
                         </InputAdornment>
                       ),
                     }}

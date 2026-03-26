@@ -24,9 +24,9 @@ import {
   DialogTitle
 } from '@mui/material';
 import {
-  UploadCloud, 
-  ExternalLink, 
-  Wallet, 
+  UploadCloud,
+  ExternalLink,
+  Wallet,
   Zap,
   Printer,
   QrCode,
@@ -112,10 +112,12 @@ export default function DashboardPage() {
       <Box sx={{ mb: 6, display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'flex-end' }, gap: 3 }}>
         <Box>
           <Typography variant="h4" sx={{ fontWeight: 900, mb: 1, letterSpacing: -1.5 }}>
-            {getGreeting()}, {profile?.full_name?.split(' ')[0] || 'Student'}!
+            {getGreeting()}, {profile?.full_name?.split(' ')[0] || 'My Good Sire!'}!
           </Typography>
-          <Typography color="text.secondary">
-            Welcome to your PrintPortal printing command center.
+          <Typography color="text.secondary" variant="body2" sx={{ fontWeight: 500 }}>
+            {profile?.wallet_balance && profile.wallet_balance < 5
+              ? "Your balance is low. Top up to keep printing!"
+              : "Ready to turn those digital files into paper?"}
           </Typography>
         </Box>
         <Card variant="outlined" sx={{ borderRadius: 4, px: 3, py: 1.5, display: 'flex', alignItems: 'center', gap: 2, bgcolor: (theme) => alpha(theme.palette.success.main, 0.05), borderColor: 'success.main', borderStyle: 'dashed' }}>
@@ -137,10 +139,10 @@ export default function DashboardPage() {
                 <Typography variant="h6" sx={{ fontWeight: 900 }}>
                   Recent Print Jobs
                 </Typography>
-                <Button 
-                  variant="text" 
-                  size="small" 
-                  endIcon={<ExternalLink size={16} />} 
+                <Button
+                  variant="text"
+                  size="small"
+                  endIcon={<ExternalLink size={16} />}
                   sx={{ fontWeight: 800 }}
                   onClick={() => window.location.href = '/dashboard/history'}
                 >
@@ -179,10 +181,10 @@ export default function DashboardPage() {
                               {job.release_code || '---'}
                             </Typography>
                             {job.release_code && (
-                              <IconButton 
-                                size="small" 
+                              <IconButton
+                                size="small"
                                 onClick={() => setQrJob(job)}
-                                sx={{ 
+                                sx={{
                                   color: 'primary.main',
                                   '&:hover': { bgcolor: (theme) => alpha(theme.palette.primary.main, 0.1) }
                                 }}
@@ -212,8 +214,8 @@ export default function DashboardPage() {
           <Card
             sx={{
               borderRadius: 4,
-              background: (theme) => theme.palette.mode === 'dark' 
-                ? 'linear-gradient(135deg, #000 0%, #1a1a1a 100%)' 
+              background: (theme) => theme.palette.mode === 'dark'
+                ? 'linear-gradient(135deg, #000 0%, #1a1a1a 100%)'
                 : 'linear-gradient(135deg, #000 0%, #333 100%)',
               color: 'white',
               mb: 4,
@@ -261,7 +263,7 @@ export default function DashboardPage() {
             <CardContent sx={{ p: 4 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
                 <Box sx={{ bgcolor: (theme) => alpha(theme.palette.primary.main, 0.1), color: 'primary.main', p: 1, borderRadius: 2, display: 'flex' }}>
-                   <Zap size={20} />
+                  <Zap size={20} />
                 </Box>
                 <Typography variant="subtitle1" sx={{ fontWeight: 900 }}>
                   Live Kiosk Map
@@ -274,12 +276,12 @@ export default function DashboardPage() {
                       <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: kiosk.status === 'online' ? 'success.main' : 'error.main', boxShadow: (theme) => `0 0 8px ${kiosk.status === 'online' ? theme.palette.success.main : theme.palette.error.main}` }} />
                       <Typography variant="body2" sx={{ fontWeight: 700 }}>{kiosk.name}</Typography>
                     </Box>
-                    <Chip 
-                      label={kiosk.status} 
-                      size="small" 
-                      color={kiosk.status === 'online' ? 'success' : 'error'} 
-                      variant="outlined" 
-                      sx={{ fontWeight: 900, fontSize: '0.6rem', height: 20, textTransform: 'uppercase' }} 
+                    <Chip
+                      label={kiosk.status}
+                      size="small"
+                      color={kiosk.status === 'online' ? 'success' : 'error'}
+                      variant="outlined"
+                      sx={{ fontWeight: 900, fontSize: '0.6rem', height: 20, textTransform: 'uppercase' }}
                     />
                   </Box>
                 )) : (
@@ -293,16 +295,16 @@ export default function DashboardPage() {
       </Grid>
 
       {/* QR Code Dialog */}
-      <Dialog 
-        open={!!qrJob} 
-        onClose={() => setQrJob(null)} 
-        PaperProps={{ 
-          sx: { 
-            borderRadius: 4, 
+      <Dialog
+        open={!!qrJob}
+        onClose={() => setQrJob(null)}
+        PaperProps={{
+          sx: {
+            borderRadius: 4,
             p: 1,
             maxWidth: 360,
             textAlign: 'center'
-          } 
+          }
         }}
       >
         <DialogTitle sx={{ fontWeight: 900, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -313,17 +315,17 @@ export default function DashboardPage() {
         </DialogTitle>
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, pb: 4 }}>
           {qrJob?.release_code && (
-            <Box sx={{ 
-              bgcolor: 'white', 
-              p: 3, 
-              borderRadius: 3, 
+            <Box sx={{
+              bgcolor: 'white',
+              p: 3,
+              borderRadius: 3,
               border: '2px solid',
               borderColor: 'divider',
               display: 'inline-flex'
             }}>
-              <QRCodeSVG 
-                value={qrJob.release_code} 
-                size={200} 
+              <QRCodeSVG
+                value={qrJob.release_code}
+                size={200}
                 level="H"
                 includeMargin={false}
               />
@@ -337,11 +339,11 @@ export default function DashboardPage() {
               Scan this QR code at any PrintPortal kiosk to release your print job.
             </Typography>
           </Box>
-          <Box sx={{ 
-            bgcolor: (theme) => alpha(theme.palette.info.main, 0.08), 
-            borderRadius: 2, 
-            p: 2, 
-            width: '100%' 
+          <Box sx={{
+            bgcolor: (theme) => alpha(theme.palette.info.main, 0.08),
+            borderRadius: 2,
+            p: 2,
+            width: '100%'
           }}>
             <Typography variant="caption" sx={{ fontWeight: 700, color: 'info.main' }}>
               {qrJob?.file_name}
