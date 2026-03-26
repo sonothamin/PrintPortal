@@ -124,7 +124,6 @@ export default function WalletPage() {
     let timeoutId: NodeJS.Timeout;
 
     if (qrOpen) {
-      setIsScanning(true); // Set scanning state
       // Small delay to ensure the Dialog's DOM is rendered
       timeoutId = setTimeout(() => {
         const element = document.getElementById("reader");
@@ -139,6 +138,7 @@ export default function WalletPage() {
           { facingMode: "environment" }, 
           config, 
           (decodedText) => {
+            setIsScanning(true); // Set scanning state
             setRechargeAmount(decodedText); // Set rechargeAmount
             setQrOpen(false);
             setIsScanning(false); // Stop scanning state
