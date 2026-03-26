@@ -3,14 +3,37 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import {
-  Grid, Typography, Card, CardContent, Box, Button, Table,
-  TableBody, TableCell, TableContainer, TableHead, TableRow,
-  alpha, IconButton, Dialog, DialogContent, DialogTitle, 
-  Stack, Skeleton
+  Grid, 
+  Typography, 
+  Card, 
+  CardContent, 
+  Box, 
+  Button, 
+  Table,
+  TableBody, 
+  TableCell, 
+  TableContainer, 
+  TableHead, 
+  TableRow,
+  alpha, 
+  IconButton, 
+  Dialog, 
+  DialogContent, 
+  DialogTitle, 
+  Stack, 
+  Skeleton
 } from '@mui/material';
 import {
-  ExternalLink, Wallet, Zap, Printer, 
-  QrCode, X, Clock, CheckCircle2, XCircle, Undo2
+  ExternalLink, 
+  Wallet, 
+  Zap, 
+  Printer, 
+  QrCode, 
+  X, 
+  Clock, 
+  CheckCircle2, 
+  XCircle, 
+  Undo2
 } from 'lucide-react';
 
 import DashboardLayout from '@/components/DashboardLayout';
@@ -107,7 +130,6 @@ export default function DashboardPage() {
           </Typography>
         </Box>
 
-        {/* Refined Balance Card to match new style */}
         <Card sx={{ 
           borderRadius: 3, bgcolor: 'text.primary', color: 'background.paper', 
           position: 'relative', overflow: 'hidden', minWidth: 200 
@@ -123,7 +145,6 @@ export default function DashboardPage() {
       </Box>
 
       <Grid container spacing={3}>
-        {/* Activity Table */}
         <Grid size={{ xs: 12, md: 8 }}>
           <Card variant="outlined" sx={{ borderRadius: 3, height: '100%' }}>
             <CardContent sx={{ p: 3 }}>
@@ -169,10 +190,8 @@ export default function DashboardPage() {
           </Card>
         </Grid>
 
-        {/* Sidebar */}
         <Grid size={{ xs: 12, md: 4 }}>
           <Stack spacing={3}>
-            {/* NEW Drop-in Style for "Ready to print?" */}
             <Card sx={{
               borderRadius: 3, bgcolor: 'text.primary', color: 'background.paper',
               position: 'relative', overflow: 'hidden'
@@ -220,7 +239,6 @@ export default function DashboardPage() {
         </Grid>
       </Grid>
 
-      {/* QR Code Dialog */}
       <Dialog open={!!qrJob} onClose={() => setQrJob(null)} PaperProps={{ sx: { borderRadius: 4, p: 2 } }}>
         <DialogTitle sx={{ fontWeight: 900, display: 'flex', justifyContent: 'space-between' }}>
           Scan to Print <IconButton onClick={() => setQrJob(null)}><X size={18} /></IconButton>
