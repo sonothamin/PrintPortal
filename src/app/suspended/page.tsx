@@ -96,7 +96,7 @@ export default function SuspendedPage() {
               sx={{
                 px: 6,
                 py: 2,
-                borderRadius: 4,
+                borderRadius: 2,
                 fontWeight: 900,
                 textTransform: 'none',
                 fontSize: '1.1rem',
@@ -110,7 +110,7 @@ export default function SuspendedPage() {
               color="inherit"
               size="large"
               onClick={() => router.push('/')}
-              sx={{ px: 6, py: 2, borderRadius: 4, fontWeight: 700, textTransform: 'none', fontSize: '1.1rem' }}
+              sx={{ px: 6, py: 2, borderRadius: 2, fontWeight: 700, textTransform: 'none', fontSize: '1.1rem' }}
             >
               Back to Home
             </Button>

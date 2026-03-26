@@ -131,7 +131,7 @@ export default function EconomySettingsPage() {
 
       <Grid container spacing={4}>
         <Grid size={{ xs: 12, md: 8 }}>
-          <Card variant="outlined" sx={{ borderRadius: 4 }}>
+          <Card variant="outlined" sx={{ borderRadius: 2 }}>
             <CardContent sx={{ p: 4 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 4 }}>
                 <DollarSign size={24} />
@@ -245,7 +245,7 @@ export default function EconomySettingsPage() {
         </Grid>
 
         <Grid size={{ xs: 12, md: 4 }}>
-          <Card variant="outlined" sx={{ borderRadius: 4, bgcolor: 'background.paper' }}>
+          <Card variant="outlined" sx={{ borderRadius: 2, bgcolor: 'background.paper' }}>
             <CardContent sx={{ p: 4 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 4 }}>
                 <TrendingUp size={24} />

@@ -243,7 +243,7 @@ export default function KioskPage() {
             size="large"
             onClick={() => setMode('home')}
             startIcon={<ChevronLeft size={24} />}
-            sx={{ borderRadius: 4, px: 4, borderWidth: 2, '&:hover': { borderWidth: 2 } }}
+            sx={{ borderRadius: 2, px: 4, borderWidth: 2, '&:hover': { borderWidth: 2 } }}
           >
             Back
           </Button>
@@ -325,7 +325,7 @@ export default function KioskPage() {
               sx={{
                 bgcolor: '#1a1a1a',
                 p: 3,
-                borderRadius: 4,
+                borderRadius: 2,
                 mb: 4,
                 textAlign: 'center',
                 letterSpacing: 8,
@@ -385,7 +385,7 @@ export default function KioskPage() {
               sx={{
                 mt: 4,
                 height: 80,
-                borderRadius: 4,
+                borderRadius: 2,
                 fontSize: '2rem',
                 fontWeight: 900,
                 bgcolor: '#fff',

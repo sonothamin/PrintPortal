@@ -172,7 +172,7 @@ PrintPortal Administration`
         </Button>
       </Box>
 
-      <Card variant="outlined" sx={{ borderRadius: 4, overflow: 'hidden', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}>
+      <Card variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}>
         <Box sx={{ p: 2.5, borderBottom: '1px solid', borderColor: 'divider', bgcolor: (theme) => alpha(theme.palette.background.default, 0.5) }}>
           <Box sx={{ position: 'relative', width: '100%', maxWidth: 450 }}>
             <Search size={18} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }} />
@@ -289,7 +289,7 @@ PrintPortal Administration`
       </Card>
 
       {/* Wallet Edit Dialog */}
-      <Dialog open={!!selectedUser} onClose={() => setSelectedUser(null)} PaperProps={{ sx: { borderRadius: 4 } }}>
+      <Dialog open={!!selectedUser} onClose={() => setSelectedUser(null)} PaperProps={{ sx: { borderRadius: 2 } }}>
         <DialogTitle sx={{ fontWeight: 900 }}>Adjust Wallet Balance</DialogTitle>
         <DialogContent>
           <Typography variant="body2" sx={{ mb: 3 }}>

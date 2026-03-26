@@ -222,7 +222,7 @@ export default function KioskManagementPage() {
         </Grid>
       </Grid>
 
-      <Card variant="outlined" sx={{ borderRadius: 4, overflow: 'hidden', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}>
+      <Card variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}>
         <Box sx={{ p: 2.5, borderBottom: '1px solid', borderColor: 'divider', bgcolor: (theme) => alpha(theme.palette.background.default, 0.5) }}>
           <Box sx={{ position: 'relative', width: '100%', maxWidth: 450 }}>
             <Search size={18} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }} />
@@ -315,7 +315,7 @@ export default function KioskManagementPage() {
       </Card>
 
       {/* Add Kiosk Dialog */}
-      <Dialog open={addModalOpen} onClose={() => setAddModalOpen(false)} PaperProps={{ sx: { borderRadius: 4, width: '100%', maxWidth: 450 } }}>
+      <Dialog open={addModalOpen} onClose={() => setAddModalOpen(false)} PaperProps={{ sx: { borderRadius: 2, width: '100%', maxWidth: 450 } }}>
         <DialogTitle sx={{ fontWeight: 900 }}>Register New Kiosk</DialogTitle>
         <DialogContent>
           <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -354,7 +354,7 @@ export default function KioskManagementPage() {
       </Dialog>
 
       {/* Terminal Refund Dialog */}
-      <Dialog open={refundModalOpen} onClose={() => setRefundModalOpen(false)} PaperProps={{ sx: { borderRadius: 4, width: '100%', maxWidth: 450 } }}>
+      <Dialog open={refundModalOpen} onClose={() => setRefundModalOpen(false)} PaperProps={{ sx: { borderRadius: 2, width: '100%', maxWidth: 450 } }}>
         <DialogTitle sx={{ fontWeight: 900 }}>Remote Terminal Refund</DialogTitle>
         <DialogContent>
           <Typography variant="body2" sx={{ mb: 3, color: 'text.secondary' }}>

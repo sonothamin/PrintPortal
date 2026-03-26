@@ -255,7 +255,7 @@ function GlobalQueueContent() {
         </Alert>
       )}
 
-      <Card variant="outlined" sx={{ borderRadius: 4, overflow: 'hidden', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' }}>
+      <Card variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' }}>
         <Box sx={{ p: { xs: 2, sm: 3 }, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center', bgcolor: (theme) => alpha(theme.palette.background.default, 0.5) }}>
           <Box sx={{ position: 'relative', flexGrow: 1, minWidth: { xs: '100%', sm: 0 } }}>
             <Search size={18} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }} />
@@ -371,7 +371,7 @@ function GlobalQueueContent() {
         onClose={() => setPreviewFile(null)} 
         maxWidth="md" 
         fullWidth
-        PaperProps={{ sx: { borderRadius: 4, bgcolor: '#000' } }}
+        PaperProps={{ sx: { borderRadius: 2, bgcolor: '#000' } }}
       >
         <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#fff' }}>
           Document Preview
@@ -398,7 +398,7 @@ function GlobalQueueContent() {
       <Dialog 
         open={clearModalOpen} 
         onClose={() => !clearingTemp && setClearModalOpen(false)}
-        PaperProps={{ sx: { borderRadius: 4, width: 400 } }}
+        PaperProps={{ sx: { borderRadius: 2, width: 400 } }}
       >
         <DialogTitle sx={{ fontWeight: 800, display: 'flex', alignItems: 'center', gap: 1 }}>
           <AlertTriangle color={theme.palette.error.main} size={24} />
@@ -427,7 +427,7 @@ function GlobalQueueContent() {
       <Dialog 
         open={clearJobsModalOpen} 
         onClose={() => !clearingJobs && setClearJobsModalOpen(false)}
-        PaperProps={{ sx: { borderRadius: 4, width: 400 } }}
+        PaperProps={{ sx: { borderRadius: 2, width: 400 } }}
       >
         <DialogTitle sx={{ fontWeight: 800, display: 'flex', alignItems: 'center', gap: 1 }}>
           <Trash2 color={theme.palette.error.main} size={24} />

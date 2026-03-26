@@ -108,7 +108,7 @@ export default function NotificationHistory() {
       </Box>
 
       <Card sx={{
-        borderRadius: 4,
+        borderRadius: 2,
         border: '1px solid',
         borderColor: 'divider',
         boxShadow: 'none',

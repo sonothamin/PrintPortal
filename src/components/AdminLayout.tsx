@@ -208,7 +208,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </List>
         
         <Box sx={{ mt: 'auto', p: 3, display: open ? 'block' : 'none' }}>
-          <Box sx={{ bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', borderRadius: 4, p: 2 }}>
+          <Box sx={{ bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', borderRadius: 2, p: 2 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
               <Activity size={16} color="#4caf50" />
               <Typography variant="caption" sx={{ fontWeight: 800 }}>Kiosk Fleet Status</Typography>

@@ -193,7 +193,7 @@ export default function ProfilePage() {
 
       <Grid container spacing={4}>
         <Grid size={{ xs: 12, md: 4 }}>
-          <Card variant="outlined" sx={{ borderRadius: 4, textAlign: 'center', p: 4 }}>
+          <Card variant="outlined" sx={{ borderRadius: 2, textAlign: 'center', p: 4 }}>
             <Box sx={{ position: 'relative', display: 'inline-block', mb: 3 }}>
               <Avatar 
                 src={profile?.avatar_url || undefined} 
@@ -227,7 +227,7 @@ export default function ProfilePage() {
         </Grid>
 
         <Grid size={{ xs: 12, md: 8 }}>
-          <Card variant="outlined" sx={{ borderRadius: 4 }}>
+          <Card variant="outlined" sx={{ borderRadius: 2 }}>
             <CardContent sx={{ p: 4 }}>
               <Typography variant="h6" sx={{ fontWeight: 800, mb: 4 }}>Account Details</Typography>
               

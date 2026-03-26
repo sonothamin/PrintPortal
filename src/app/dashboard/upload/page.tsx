@@ -211,7 +211,7 @@ export default function UploadPage() {
               p: 6, 
               border: '2px dashed', 
               borderColor: 'divider', 
-              borderRadius: 4, 
+              borderRadius: 2, 
               textAlign: 'center',
               bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'grey.50',
               cursor: 'pointer',
@@ -292,7 +292,7 @@ export default function UploadPage() {
         </Grid>
 
         <Grid size={{ xs: 12, md: 5 }}>
-          <Card variant="outlined" sx={{ borderRadius: 4, position: 'sticky', top: 24 }}>
+          <Card variant="outlined" sx={{ borderRadius: 2, position: 'sticky', top: 24 }}>
             <CardContent sx={{ p: 4 }}>
               <Typography variant="h6" sx={{ fontWeight: 800, mb: 3 }}>
                 Print Configuration
@@ -327,7 +327,7 @@ export default function UploadPage() {
 
                 <Box sx={{ 
                   p: 3, 
-                  borderRadius: 4, 
+                  borderRadius: 2, 
                   bgcolor: (theme) => alpha(theme.palette.primary.main, 0.05),
                   border: '1px solid',
                   borderColor: (theme) => alpha(theme.palette.primary.main, 0.1)

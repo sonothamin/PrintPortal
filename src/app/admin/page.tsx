@@ -84,7 +84,7 @@ export default function AdminDashboard() {
             { label: 'Kiosks Online', value: `${stats.kiosksOnline}/${kiosks.length}`, icon: <Activity size={20} />, color: 'warning.main', trend: kiosks.length > 0 ? `${Math.round((stats.kiosksOnline / kiosks.length) * 100)}% online` : 'No kiosks' },
           ].map((m, i) => (
             <Grid size={{ xs: 12, sm: 6, md: 3 }} key={i}>
-            <Card variant="outlined" sx={{ borderRadius: 4, height: '100%' }}>
+            <Card variant="outlined" sx={{ borderRadius: 2, height: '100%' }}>
               <CardContent sx={{ p: 3 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
                   <Box sx={{ color: m.color, bgcolor: (theme: any) => alpha(theme.palette[m.color.split('.')[0]].main, 0.1), p: 1, borderRadius: 2 }}>

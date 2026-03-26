@@ -209,7 +209,7 @@ export default function NotificationManagement() {
           { label: 'Broadcasts', value: notifications.filter(n => !n.user_id).length, icon: <Users size={20} />, color: 'success' },
           { label: 'Targeted', value: notifications.filter(n => n.user_id).length, icon: <User size={20} />, color: 'info' },
         ].map((stat, i) => (
-          <Card key={i} sx={{ borderRadius: 4, bgcolor: alpha(theme.palette.text.primary, 0.02), border: '1px solid', borderColor: 'divider' }}>
+          <Card key={i} sx={{ borderRadius: 2, bgcolor: alpha(theme.palette.text.primary, 0.02), border: '1px solid', borderColor: 'divider' }}>
             <CardContent sx={{ p: 3 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <Box sx={{ p: 1.5, borderRadius: 2, bgcolor: alpha(theme.palette.text.primary, 0.05), color: 'text.primary' }}>
@@ -225,7 +225,7 @@ export default function NotificationManagement() {
         ))}
       </Box>
 
-      <TableContainer component={Card} sx={{ borderRadius: 4, border: '1px solid', borderColor: 'divider', overflowX: 'auto' }}>
+      <TableContainer component={Card} sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider', overflowX: 'auto' }}>
         <Table>
           <TableHead>
             <TableRow sx={{ bgcolor: alpha(theme.palette.text.primary, 0.02) }}>
@@ -308,7 +308,7 @@ export default function NotificationManagement() {
         onClose={() => !sending && setOpen(false)} 
         maxWidth="sm" 
         fullWidth
-        PaperProps={{ sx: { borderRadius: 4, p: 1 } }}
+        PaperProps={{ sx: { borderRadius: 2, p: 1 } }}
       >
         <DialogTitle sx={{ fontWeight: 900, fontSize: '1.5rem' }}>Send New Alert</DialogTitle>
         <DialogContent>

@@ -80,7 +80,7 @@ export default function LegalPage() {
                 <Paper
                     variant="outlined"
                     sx={{
-                        borderRadius: 4,
+                        borderRadius: 2,
                         overflow: 'hidden',
                     }}
                 >

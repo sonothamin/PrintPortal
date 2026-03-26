@@ -264,7 +264,7 @@ export default function TokenManagementPage() {
       <CustomTabPanel value={tabValue} index={0}>
         <Grid container spacing={4} justifyContent="center">
           <Grid size={{ xs: 12, md: 6 }}>
-            <Card variant="outlined" sx={{ borderRadius: 4 }}>
+            <Card variant="outlined" sx={{ borderRadius: 2 }}>
               <CardContent sx={{ p: 4 }}>
                 <Typography variant="h6" sx={{ fontWeight: 900, mb: 4 }}>New Token Batch</Typography>
                 
@@ -318,7 +318,7 @@ export default function TokenManagementPage() {
 
       {/* Tab 2: Circulation */}
       <CustomTabPanel value={tabValue} index={1}>
-        <Card variant="outlined" sx={{ borderRadius: 4, overflow: 'hidden' }}>
+        <Card variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden' }}>
           {/* Filter/Sort Bar */}
           <Box sx={{ p: 2.5, display: 'flex', gap: 2, borderBottom: '1px solid', borderColor: 'divider', flexWrap: 'wrap', alignItems: 'center' }}>
             <TextField
@@ -441,7 +441,7 @@ export default function TokenManagementPage() {
           ].map((s, i) => (
             <Grid size={{ xs: 12, sm: 6, md: 3 }} key={i}>
               <Card variant="outlined" sx={{ 
-                borderRadius: 4, 
+                borderRadius: 2, 
                 height: '100%', 
                 bgcolor: s.bg,
                 border: '1px solid',
@@ -469,7 +469,7 @@ export default function TokenManagementPage() {
       <Dialog 
         open={!!qrToken} 
         onClose={() => setQrToken(null)}
-        PaperProps={{ sx: { borderRadius: 4, p: 2 } }}
+        PaperProps={{ sx: { borderRadius: 2, p: 2 } }}
       >
         <DialogTitle sx={{ fontWeight: 900, textAlign: 'center', pb: 0 }}>
           Voucher QR Code
@@ -477,7 +477,7 @@ export default function TokenManagementPage() {
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', pt: 3 }}>
           {qrToken && (
             <>
-              <Box sx={{ p: 3, bgcolor: 'white', borderRadius: 4, boxShadow: '0 4px 20px rgba(0,0,0,0.1)', mb: 3 }}>
+              <Box sx={{ p: 3, bgcolor: 'white', borderRadius: 2, boxShadow: '0 4px 20px rgba(0,0,0,0.1)', mb: 3 }}>
                 <QRCodeSVG value={qrToken.code} size={200} level="H" includeMargin={true} />
               </Box>
               <Typography variant="h6" sx={{ fontFamily: 'monospace', fontWeight: 900, mb: 1 }}>{qrToken.code}</Typography>

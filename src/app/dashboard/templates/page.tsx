@@ -52,7 +52,7 @@ export default function TemplatesPage() {
                 <Card 
                   variant="outlined" 
                   sx={{ 
-                    borderRadius: 4, 
+                    borderRadius: 2, 
                     cursor: 'pointer',
                     transition: 'all 0.2s',
                     borderColor: selectedTemplate === template.id ? 'black' : 'divider',
@@ -89,7 +89,7 @@ export default function TemplatesPage() {
         {/* Form Area */}
         {selectedTemplate && (
           <Grid size={{ xs: 12, md: 7 }}>
-            <Card variant="outlined" sx={{ borderRadius: 4, position: 'sticky', top: 24 }}>
+            <Card variant="outlined" sx={{ borderRadius: 2, position: 'sticky', top: 24 }}>
               <CardContent sx={{ p: 4 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                   <Typography variant="h6" sx={{ fontWeight: 800 }}>

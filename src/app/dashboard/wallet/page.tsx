@@ -137,7 +137,7 @@ export default function WalletPage() {
         {/* Balance Card - Compact (33% width) */}
         <Grid size={{ xs: 12, md: 4 }}>
           <Card sx={{
-            height: '100%', borderRadius: 4, bgcolor: 'text.primary', color: 'background.paper',
+            height: '100%', borderRadius: 2, bgcolor: 'text.primary', color: 'background.paper',
             position: 'relative', overflow: 'hidden'
           }}>
             <CardContent sx={{ p: 4, flexGrow: 1, zIndex: 1 }}>
@@ -162,7 +162,7 @@ export default function WalletPage() {
 
         {/* Recharge Card - Functional (66% width) */}
         <Grid size={{ xs: 12, md: 8 }}>
-          <Card variant="outlined" sx={{ height: '100%', borderRadius: 4, bgcolor: 'background.paper' }}>
+          <Card variant="outlined" sx={{ height: '100%', borderRadius: 2, bgcolor: 'background.paper' }}>
             <CardContent sx={{ p: 4 }}>
               <Typography variant="h6" sx={{ fontWeight: 800, mb: 1 }}>Top Up Account</Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
@@ -221,7 +221,7 @@ export default function WalletPage() {
       </Grid>
 
       {/* Transaction History Section */}
-      <Card variant="outlined" sx={{ borderRadius: 4, overflow: 'hidden' }}>
+      <Card variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden' }}>
         <Box sx={{ px: 3, py: 2.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 900 }}>Transaction History</Typography>
           <History size={18} style={{ opacity: 0.3 }} />

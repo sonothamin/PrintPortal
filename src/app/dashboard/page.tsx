@@ -120,7 +120,7 @@ export default function DashboardPage() {
               : "Ready to turn those digital files into paper?"}
           </Typography>
         </Box>
-        <Card variant="outlined" sx={{ borderRadius: 4, px: 3, py: 1.5, display: 'flex', alignItems: 'center', gap: 2, bgcolor: (theme) => alpha(theme.palette.success.main, 0.05), borderColor: 'success.main', borderStyle: 'dashed' }}>
+        <Card variant="outlined" sx={{ borderRadius: 2, px: 3, py: 1.5, display: 'flex', alignItems: 'center', gap: 2, bgcolor: (theme) => alpha(theme.palette.success.main, 0.05), borderColor: 'success.main', borderStyle: 'dashed' }}>
           <Box sx={{ bgcolor: 'success.main', p: 0.8, borderRadius: 1.5, color: 'white', display: 'flex' }}>
             <Wallet size={18} />
           </Box>
@@ -133,7 +133,7 @@ export default function DashboardPage() {
 
       <Grid container spacing={4}>
         <Grid size={{ xs: 12, md: 8 }}>
-          <Card variant="outlined" sx={{ borderRadius: 4, mb: 4, border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}>
+          <Card variant="outlined" sx={{ borderRadius: 2, mb: 4, border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}>
             <CardContent sx={{ p: 4 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                 <Typography variant="h6" sx={{ fontWeight: 900 }}>
@@ -213,23 +213,26 @@ export default function DashboardPage() {
         <Grid size={{ xs: 12, md: 4 }}>
           <Card
             sx={{
-              borderRadius: 4,
+              borderRadius: 2,
+              // Uses theme palette instead of hardcoded hex
               background: (theme) => theme.palette.mode === 'dark'
-                ? 'linear-gradient(135deg, #000 0%, #1a1a1a 100%)'
-                : 'linear-gradient(135deg, #000 0%, #333 100%)',
-              color: 'white',
+                ? `linear-gradient(135deg, ${theme.palette.common.black} 0%, ${alpha(theme.palette.common.white, 0.05)} 100%)`
+                : `linear-gradient(135deg, ${theme.palette.text.primary} 0%, ${alpha(theme.palette.text.primary, 0.8)} 100%)`,
+              color: (theme) => theme.palette.getContrastText(theme.palette.text.primary),
               mb: 4,
               position: 'relative',
               overflow: 'hidden',
-              boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)'
+              boxShadow: (theme) => theme.palette.mode === 'dark'
+                ? '0 20px 25px -5px rgb(0 0 0 / 0.5)'
+                : '0 20px 25px -5px rgb(0 0 0 / 0.1)'
             }}
           >
-            <Box sx={{ position: 'absolute', top: -20, right: -20, opacity: 0.1, transform: 'rotate(15deg)' }}>
+            <Box sx={{ position: 'absolute', top: -20, right: -20, opacity: 0.1, transform: 'rotate(15deg)', color: 'inherit' }}>
               <Printer size={160} />
             </Box>
             <CardContent sx={{ p: 4, position: 'relative', zIndex: 1 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-                <Box sx={{ bgcolor: 'rgba(255,255,255,0.1)', p: 1, borderRadius: 2 }}>
+                <Box sx={{ bgcolor: 'rgba(255,255,255,0.2)', p: 1, borderRadius: 2 }}>
                   <UploadCloud size={24} />
                 </Box>
                 <Typography variant="h6" sx={{ fontWeight: 900 }}>
@@ -244,12 +247,15 @@ export default function DashboardPage() {
                 variant="contained"
                 size="large"
                 sx={{
-                  bgcolor: 'white',
-                  color: 'black',
+                  bgcolor: 'background.paper',
+                  color: 'text.primary',
                   fontWeight: 900,
                   borderRadius: 2.5,
                   py: 1.5,
-                  '&:hover': { bgcolor: 'rgba(255,255,255,0.9)', transform: 'scale(1.02)' },
+                  '&:hover': {
+                    bgcolor: 'background.default',
+                    transform: 'scale(1.02)'
+                  },
                   transition: 'all 0.2s'
                 }}
                 onClick={() => window.location.href = '/dashboard/upload'}
@@ -259,7 +265,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card variant="outlined" sx={{ borderRadius: 4 }}>
+          <Card variant="outlined" sx={{ borderRadius: 2 }}>
             <CardContent sx={{ p: 4 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
                 <Box sx={{ bgcolor: (theme) => alpha(theme.palette.primary.main, 0.1), color: 'primary.main', p: 1, borderRadius: 2, display: 'flex' }}>
@@ -300,7 +306,7 @@ export default function DashboardPage() {
         onClose={() => setQrJob(null)}
         PaperProps={{
           sx: {
-            borderRadius: 4,
+            borderRadius: 2,
             p: 1,
             maxWidth: 360,
             textAlign: 'center'
