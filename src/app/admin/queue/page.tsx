@@ -135,9 +135,9 @@ function GlobalQueueContent() {
         </Box>
       </Box>
 
-      {statusMsg && <Alert severity={statusMsg.type} sx={{ mb: 3, borderRadius: 3, fontWeight: 600 }}>{statusMsg.text}</Alert>}
+      {statusMsg && <Alert severity={statusMsg.type} sx={{ mb: 3, borderRadius: 2, fontWeight: 600 }}>{statusMsg.text}</Alert>}
 
-      <Card sx={{ mb: 3, p: 2, borderRadius: 3, display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+      <Card sx={{ mb: 3, p: 2, borderRadius: 2, display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
         <TextField size="small" placeholder="Search jobs..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} InputProps={{ startAdornment: <Search size={18} style={{ marginRight: 8, opacity: 0.5 }} /> }} sx={{ flexGrow: 1, minWidth: '200px' }} />
         <TextField select size="small" label="Status Filter" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} sx={{ minWidth: '150px' }}>
           <MenuItem value="all">All Status</MenuItem>
@@ -145,7 +145,7 @@ function GlobalQueueContent() {
         </TextField>
       </Card>
 
-      <TableContainer component={Card} sx={{ borderRadius: 4, border: 'none', boxShadow: theme.shadows[2] }}>
+      <TableContainer component={Card} sx={{ borderRadius: 2, border: 'none', boxShadow: theme.shadows[2] }}>
         <Table>
           <TableHead sx={{ bgcolor: alpha(theme.palette.primary.main, 0.05) }}>
             <TableRow>
@@ -237,7 +237,7 @@ function GlobalQueueContent() {
       <Dialog open={qrModalOpen} onClose={() => setQrModalOpen(false)} PaperProps={{ sx: { borderRadius: 5, p: 1 } }}>
         <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}><IconButton onClick={() => setQrModalOpen(false)}><X size={20} /></IconButton></Box>
         <DialogContent sx={{ textAlign: 'center', pt: 0 }}>
-          <Box sx={{ p: 3, bgcolor: '#fff', borderRadius: 4, display: 'inline-block', border: '1px solid', borderColor: 'divider' }}>
+          <Box sx={{ p: 3, bgcolor: '#fff', borderRadius: 2, display: 'inline-block', border: '1px solid', borderColor: 'divider' }}>
             {selectedJob && <QRCodeSVG value={JSON.stringify({ id: selectedJob.id, code: selectedJob.release_code })} size={200} level="H" includeMargin />}
           </Box>
           <Typography variant="h6" sx={{ fontWeight: 900, mt: 2 }}>{selectedJob?.release_code}</Typography>
@@ -246,7 +246,7 @@ function GlobalQueueContent() {
       </Dialog>
 
       {/* Maintenance Modals */}
-      <Dialog open={tempModalOpen} onClose={() => setTempModalOpen(false)} PaperProps={{ sx: { borderRadius: 3 } }}>
+      <Dialog open={tempModalOpen} onClose={() => setTempModalOpen(false)} PaperProps={{ sx: { borderRadius: 2 } }}>
         <DialogTitle sx={{ fontWeight: 800 }}>Purge Temporary Files?</DialogTitle>
         <DialogContent><Typography variant="body2">Delete all abandoned files in <code>/temp</code>?</Typography></DialogContent>
         <DialogActions sx={{ p: 2 }}>
@@ -255,7 +255,7 @@ function GlobalQueueContent() {
         </DialogActions>
       </Dialog>
 
-      <Dialog open={queueModalOpen} onClose={() => setQueueModalOpen(false)} PaperProps={{ sx: { borderRadius: 3 } }}>
+      <Dialog open={queueModalOpen} onClose={() => setQueueModalOpen(false)} PaperProps={{ sx: { borderRadius: 2 } }}>
         <DialogTitle sx={{ fontWeight: 800 }}>Clear Finalized Storage?</DialogTitle>
         <DialogContent><Typography variant="body2">Remove physical PDFs for all processed jobs?</Typography></DialogContent>
         <DialogActions sx={{ p: 2 }}>
