@@ -293,8 +293,7 @@ export default function HistoryPage() {
         </DialogTitle>
         <DialogContent>
           <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.secondary' }}>
-            Are you sure you want to cancel the print job for <strong>{cancelJob?.file_name}</strong>? 
-            Your credits will be refunded.
+            Are you sure you want to cancel the print job for <strong>{cancelJob?.file_name}</strong>?
           </Typography>
         </DialogContent>
         <DialogActions sx={{ p: 2.5, pt: 0 }}>
