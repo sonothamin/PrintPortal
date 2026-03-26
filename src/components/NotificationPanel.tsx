@@ -1,18 +1,18 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { formatTimeAgo } from '@/utils/date';
 import { useRouter } from 'next/navigation';
-import { 
-  Box, Typography, IconButton, List, ListItem, ListItemText, 
-  ListItemIcon, Divider, Badge, Popover, CircularProgress, 
+import {
+  Box, Typography, IconButton, List, ListItem, ListItemText,
+  ListItemIcon, Divider, Badge, Popover, CircularProgress,
   Button, alpha, useTheme, Stack, Fade
 } from '@mui/material';
-import { 
-  Bell, Info, CheckCircle2, AlertTriangle, AlertCircle, 
+import {
+  Bell, Info, CheckCircle2, AlertTriangle, AlertCircle,
   ShieldAlert, Inbox, ExternalLink
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { formatDistanceToNow } from 'date-fns';
 
 interface Notification {
   id: string;
@@ -47,14 +47,14 @@ export default function NotificationPanel() {
 
     const channel = supabase
       .channel('nav-notifs')
-      .on('postgres_changes', { 
-        event: 'INSERT', 
-        schema: 'public', 
-        table: 'notifications' 
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'notifications'
       }, (payload) => {
         const newNotif = payload.new as Notification;
         setNotifications(prev => [newNotif, ...prev].slice(0, 10));
-        
+
         // Show the badge if the panel isn't currently open
         if (!anchorEl) setHasNewSinceOpen(true);
       })
@@ -86,17 +86,17 @@ export default function NotificationPanel() {
 
   return (
     <>
-      <IconButton 
-        onClick={handleOpen} 
-        sx={{ 
+      <IconButton
+        onClick={handleOpen}
+        sx={{
           transition: 'all 0.2s',
           bgcolor: open ? alpha(theme.palette.primary.main, 0.1) : 'transparent',
           color: open ? 'primary.main' : 'inherit'
         }}
       >
-        <Badge 
-          variant="dot" 
-          invisible={!hasNewSinceOpen} 
+        <Badge
+          variant="dot"
+          invisible={!hasNewSinceOpen}
           color="error"
           sx={{ '& .MuiBadge-badge': { width: 10, height: 10, borderRadius: '50%', border: `2px solid ${theme.palette.background.paper}` } }}
         >
@@ -129,12 +129,12 @@ export default function NotificationPanel() {
         <Box sx={{ px: 2.5, py: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>Notifications</Typography>
           {notifications.length > 0 && (
-             <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.disabled' }}>
-                Latest updates
-             </Typography>
+            <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.disabled' }}>
+              Latest updates
+            </Typography>
           )}
         </Box>
-        
+
         <Divider />
 
         {/* Content */}
@@ -146,25 +146,25 @@ export default function NotificationPanel() {
               {notifications.map((n) => {
                 const config = getIcon(n.type);
                 return (
-                  <ListItem 
-                    key={n.id} 
-                    sx={{ 
-                      py: 2, px: 2.5, 
+                  <ListItem
+                    key={n.id}
+                    sx={{
+                      py: 2, px: 2.5,
                       borderBottom: `1px solid ${theme.palette.divider}`,
                       '&:hover': { bgcolor: alpha(theme.palette.action.hover, 0.4) },
                     }}
                   >
                     <ListItemIcon sx={{ minWidth: 42 }}>
-                      <Box sx={{ 
-                        p: 0.8, borderRadius: 1.5, 
-                        bgcolor: alpha(config.color, 0.1), 
+                      <Box sx={{
+                        p: 0.8, borderRadius: 1.5,
+                        bgcolor: alpha(config.color, 0.1),
                         color: config.color,
-                        display: 'flex' 
+                        display: 'flex'
                       }}>
                         {config.icon}
                       </Box>
                     </ListItemIcon>
-                    <ListItemText 
+                    <ListItemText
                       primary={
                         <Typography variant="body2" sx={{ fontWeight: 700, mb: 0.3 }}>
                           {n.title}
@@ -175,8 +175,8 @@ export default function NotificationPanel() {
                           <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.4 }}>
                             {n.message}
                           </Typography>
-                          <Typography variant="caption" sx={{ color: 'text.disabled', fontWeight: 600 }}>
-                            {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
+                          <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.disabled' }}>
+                            {formatTimeAgo(n.created_at)}
                           </Typography>
                         </Stack>
                       }
@@ -199,16 +199,16 @@ export default function NotificationPanel() {
 
         {/* Footer */}
         <Box sx={{ p: 1 }}>
-          <Button 
-            fullWidth 
+          <Button
+            fullWidth
             endIcon={<ExternalLink size={14} />}
             onClick={() => { handleClose(); router.push('/dashboard/notifications'); }}
-            sx={{ 
-                py: 1, 
-                fontWeight: 700, 
-                borderRadius: 2,
-                color: 'text.secondary',
-                '&:hover': { color: 'primary.main', bgcolor: alpha(theme.palette.primary.main, 0.05) }
+            sx={{
+              py: 1,
+              fontWeight: 700,
+              borderRadius: 2,
+              color: 'text.secondary',
+              '&:hover': { color: 'primary.main', bgcolor: alpha(theme.palette.primary.main, 0.05) }
             }}
           >
             View all activity
