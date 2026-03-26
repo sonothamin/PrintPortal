@@ -3,15 +3,15 @@
 import React, { useEffect, useState, Suspense, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import AdminPortalLayout from '@/components/AdminPortalLayout';
-import { 
-  Typography, Box, Card, Table, TableBody, TableCell, TableContainer, 
+import {
+  Typography, Box, Card, Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, Chip, IconButton, TextField, MenuItem, Button,
   Dialog, DialogTitle, DialogContent, DialogActions, alpha, useTheme,
   Alert, Stack, Grid, Tooltip, CircularProgress, Divider
 } from '@mui/material';
-import { 
+import {
   Filter, Search, Eye, Download, Clock, CheckCircle2, XCircle,
-  AlertCircle, Zap, RefreshCw, AlertTriangle, Trash2, FileText, 
+  AlertCircle, Zap, RefreshCw, AlertTriangle, Trash2, FileText,
   ExternalLink, User, Layers
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
@@ -73,7 +73,7 @@ function GlobalQueueContent() {
         body: { job_id: jobId }
       });
       if (error || !data.success) throw new Error(error?.message || data?.error || 'Release failed');
-      
+
       setStatusMsg({ text: 'Job released successfully!', type: 'success' });
       if (data.file_url) window.open(data.file_url, '_blank');
       fetchJobs();
@@ -89,7 +89,7 @@ function GlobalQueueContent() {
     if (data) setPreviewFile(data.signedUrl);
   };
 
-  const filteredJobs = jobs.filter(job => 
+  const filteredJobs = jobs.filter(job =>
     job.file_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     job.profiles?.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     job.release_code?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -125,14 +125,19 @@ function GlobalQueueContent() {
           { label: 'New Today', value: stats.today, icon: Zap, color: theme.palette.primary.main },
           { label: 'Total Revenue', value: `৳${stats.revenue.toFixed(2)}`, icon: CheckCircle2, color: theme.palette.success.main }
         ].map((stat, i) => (
-          <Grid item xs={12} sm={4} key={i}>
+          // Fixed: Using the 'size' prop instead of 'item xs sm'
+          <Grid size={{ xs: 12, sm: 4 }} key={i}>
             <Card variant="outlined" sx={{ p: 2, borderRadius: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
               <Box sx={{ p: 1.5, borderRadius: 2, bgcolor: alpha(stat.color, 0.1), color: stat.color, display: 'flex' }}>
                 <stat.icon size={24} />
               </Box>
               <Box>
-                <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase' }}>{stat.label}</Typography>
-                <Typography variant="h6" sx={{ fontWeight: 900 }}>{stat.value}</Typography>
+                <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase' }}>
+                  {stat.label}
+                </Typography>
+                <Typography variant="h6" sx={{ fontWeight: 900 }}>
+                  {stat.value}
+                </Typography>
               </Box>
             </Card>
           </Grid>
@@ -144,9 +149,9 @@ function GlobalQueueContent() {
       {/* Main Table Card */}
       <Card variant="outlined" sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', overflow: 'hidden' }}>
         <Box sx={{ p: 2, bgcolor: alpha(theme.palette.background.default, 0.5), display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
-          <TextField 
-            size="small" 
-            placeholder="Search queue..." 
+          <TextField
+            size="small"
+            placeholder="Search queue..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             InputProps={{ startAdornment: <Search size={16} style={{ marginRight: 8, opacity: 0.5 }} /> }}
@@ -186,32 +191,32 @@ function GlobalQueueContent() {
                     <Stack spacing={0.5}>
                       <Typography variant="body2" sx={{ fontWeight: 800 }}>{job.file_name}</Typography>
                       <Stack direction="row" spacing={1} alignItems="center">
-                         <User size={12} style={{ opacity: 0.5 }} />
-                         <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
-                           {job.profiles?.full_name || 'Anonymous'}
-                         </Typography>
+                        <User size={12} style={{ opacity: 0.5 }} />
+                        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                          {job.profiles?.full_name || 'Anonymous'}
+                        </Typography>
                       </Stack>
                     </Stack>
                   </TableCell>
                   <TableCell>
                     <Stack direction="row" spacing={1}>
                       <Chip label={`${job.page_count}p`} size="small" sx={{ fontWeight: 800, height: 20, fontSize: '0.65rem' }} />
-                      <Chip 
-                        label={job.is_color ? 'COL' : 'B&W'} 
-                        size="small" 
-                        sx={{ 
+                      <Chip
+                        label={job.is_color ? 'COL' : 'B&W'}
+                        size="small"
+                        sx={{
                           fontWeight: 800, height: 20, fontSize: '0.65rem',
                           bgcolor: job.is_color ? alpha(theme.palette.primary.main, 0.1) : 'divider',
                           color: job.is_color ? 'primary.main' : 'text.primary'
-                        }} 
+                        }}
                       />
                     </Stack>
                   </TableCell>
                   <TableCell>
-                    <Chip 
-                      label={job.status.replace('_', ' ')} 
+                    <Chip
+                      label={job.status.replace('_', ' ')}
                       size="small"
-                      sx={{ 
+                      sx={{
                         fontWeight: 900, fontSize: '0.65rem', textTransform: 'uppercase', borderRadius: 1,
                         bgcolor: (theme) => {
                           const c = job.status === 'completed' ? theme.palette.success : job.status === 'pending' ? theme.palette.warning : theme.palette.error;
@@ -232,9 +237,9 @@ function GlobalQueueContent() {
                   <TableCell align="right" sx={{ pr: 2 }}>
                     <Stack direction="row" spacing={0.5} justifyContent="flex-end">
                       {job.status === 'pending' && (
-                        <Button 
-                          size="small" 
-                          variant="contained" 
+                        <Button
+                          size="small"
+                          variant="contained"
                           disableElevation
                           onClick={() => handleRelease(job.id)}
                           disabled={releasing === job.id}
