@@ -3,14 +3,14 @@
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { 
-  Box, Typography, Button, Grid2 as Grid, Divider, LinearProgress,
+  Box, Typography, Button, Grid, Divider, LinearProgress,
   IconButton, TextField, MenuItem, Card, CardContent,
   alpha, Alert, CircularProgress
 } from '@mui/material';
 import { 
   UploadCloud, FileText, X, Printer, 
-  ShieldCheck, CheckCircle2 
-} from 'lucide-react'; // Added CheckCircle2
+  ShieldCheck, Info
+} from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 interface QueuedFile {
@@ -38,9 +38,11 @@ export default function UploadPage() {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
     
+    // Get Pricing
     const { data: setRes } = await supabase.from('settings').select('value').eq('key', 'print_pricing').single();
     if (setRes) setPricing(setRes.value);
     
+    // Get Balance (for display only)
     const { data: profile } = await supabase.from('profiles').select('wallet_balance').eq('id', session.user.id).single();
     if (profile) setBalance(profile.wallet_balance);
   };
@@ -53,7 +55,7 @@ export default function UploadPage() {
     if (!session) return;
 
     setAnalyzing(true);
-    setStatus({ text: 'Uploading and analyzing document...', type: 'info' });
+    setStatus({ text: 'Analyzing document...', type: 'info' });
 
     try {
       const fileExt = file.name.split('.').pop();
@@ -76,27 +78,17 @@ export default function UploadPage() {
         pages: Number(verifyData.page_count) || 0,
         cost: Number(verifyData.cost) || 0
       });
-      setStatus({ text: 'Document verified. Ready to print.', type: 'success' });
+      setStatus({ text: 'Document verified and ready.', type: 'success' });
     } catch (err: any) {
       setStatus({ text: err.message, type: 'error' });
     } finally {
       setAnalyzing(false);
-      // Reset input so the same file can be re-selected if cleared
       e.target.value = '';
     }
   };
 
-  const clearFile = () => {
-    setActiveFile(null);
-    setStatus({ text: '', type: 'info' });
-  };
-
   const handleGeneratePrintJob = async () => {
     if (!activeFile) return;
-    if (balance < currentTotalCost) {
-      setStatus({ text: 'Insufficient wallet balance.', type: 'error' });
-      return;
-    }
 
     setUploading(true);
     try {
@@ -129,13 +121,14 @@ export default function UploadPage() {
     <DashboardLayout>
       <Box sx={{ mb: 4 }}>
         <Typography variant="h4" sx={{ fontWeight: 800, mb: 1 }}>Upload Document</Typography>
-        <Typography color="text.secondary">Send one PDF at a time for processing.</Typography>
+        <Typography color="text.secondary">Prepare your PDF for the printing queue.</Typography>
       </Box>
 
       {status.text && <Alert severity={status.type} sx={{ mb: 4, borderRadius: 2 }}>{status.text}</Alert>}
 
       <Grid container spacing={4}>
-        <Grid size={{ xs: 12, md: 7 }}>
+        {/* Left Side: Upload Area */}
+        <Grid item xs={12} md={7}>
           {!activeFile && !analyzing ? (
             <Box 
               component="label"
@@ -143,81 +136,84 @@ export default function UploadPage() {
                 display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                 p: 8, border: '2px dashed', borderColor: 'divider', borderRadius: 2, 
                 textAlign: 'center', cursor: 'pointer', transition: 'all 0.2s ease',
-                bgcolor: (theme) => theme.palette.mode === 'dark' ? alpha('#fff', 0.02) : alpha('#000', 0.02),
-                '&:hover': { borderColor: 'primary.main', bgcolor: (theme) => alpha(theme.palette.primary.main, 0.04) },
+                bgcolor: (theme) => alpha(theme.palette.primary.main, 0.02),
+                '&:hover': { borderColor: 'primary.main', bgcolor: (theme) => alpha(theme.palette.primary.main, 0.05) },
               }}
             >
               <input type="file" hidden accept=".pdf" onChange={handleFileChange} />
-              <UploadCloud size={48} style={{ marginBottom: 16, color: '#666' }} />
-              <Typography variant="h6" sx={{ fontWeight: 800 }}>Click to select PDF</Typography>
-              <Typography variant="body2" color="text.secondary">Maximum file size: 50MB</Typography>
+              <UploadCloud size={48} style={{ marginBottom: 16, color: '#999' }} />
+              <Typography variant="h6" sx={{ fontWeight: 800 }}>Select PDF File</Typography>
+              <Typography variant="body2" color="text.secondary">Files are stored securely until printed</Typography>
             </Box>
           ) : (
-            <Card variant="outlined" sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
+            <Card variant="outlined" sx={{ borderRadius: 2 }}>
               <CardContent sx={{ p: 3 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                   <Box sx={{ 
                     p: 2, borderRadius: 2, 
-                    bgcolor: (theme) => alpha(analyzing ? theme.palette.warning.main : theme.palette.success.main, 0.1), 
-                    color: analyzing ? 'warning.main' : 'success.main',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    bgcolor: (theme) => alpha(theme.palette.primary.main, 0.1), 
+                    color: 'primary.main', display: 'flex'
                   }}>
                     {analyzing ? <CircularProgress size={24} color="inherit" /> : <FileText size={24} />}
                   </Box>
                   <Box sx={{ flex: 1 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
-                      {analyzing ? 'Analyzing File...' : activeFile?.name}
+                    <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                      {analyzing ? 'Reading PDF...' : activeFile?.name}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
-                      {analyzing ? 'Verifying document structure...' : `${activeFile?.size} • ${activeFile?.pages} Pages detected`}
+                      {analyzing ? 'Calculating pages...' : `${activeFile?.size} • ${activeFile?.pages} Pages`}
                     </Typography>
                   </Box>
                   {!uploading && !analyzing && (
-                    <IconButton onClick={clearFile} size="small" sx={{ border: '1px solid', borderColor: 'divider' }}>
+                    <IconButton onClick={() => setActiveFile(null)} size="small">
                       <X size={18} />
                     </IconButton>
                   )}
                 </Box>
-                {analyzing && <LinearProgress sx={{ mt: 3, borderRadius: 1, height: 6 }} />}
+                {analyzing && <LinearProgress sx={{ mt: 3, borderRadius: 1 }} />}
               </CardContent>
             </Card>
           )}
+
+          <Alert icon={<Info size={20} />} severity="info" sx={{ mt: 3, borderRadius: 2 }}>
+            You can upload documents now regardless of your balance. 
+            <strong> Payment will be deducted from your wallet only when you release the job at the printer.</strong>
+          </Alert>
         </Grid>
 
-        <Grid size={{ xs: 12, md: 5 }}>
+        {/* Right Side: Config & Summary */}
+        <Grid item xs={12} md={5}>
           <Card variant="outlined" sx={{ borderRadius: 2 }}>
             <CardContent sx={{ p: 4 }}>
-              <Typography variant="h6" sx={{ fontWeight: 800, mb: 3 }}>Print Configuration</Typography>
+              <Typography variant="h6" sx={{ fontWeight: 800, mb: 3 }}>Print Settings</Typography>
+              
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                 <Box sx={{ display: 'flex', gap: 2 }}>
                   <TextField 
                     select fullWidth label="Copies" value={copies} 
-                    disabled={uploading || analyzing}
                     onChange={(e) => setCopies(Number(e.target.value))}
                     sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
                   >
                     {[1, 2, 3, 5, 10].map(v => <MenuItem key={v} value={v}>{v}</MenuItem>)}
                   </TextField>
                   <TextField 
-                    select fullWidth label="Print Mode" value={isColor ? 'color' : 'bw'} 
-                    disabled={uploading || analyzing}
+                    select fullWidth label="Mode" value={isColor ? 'color' : 'bw'} 
                     onChange={(e) => setIsColor(e.target.value === 'color')}
                     sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
                   >
-                    <MenuItem value="bw">B&W (৳{pricing.mono_price_per_page}/p)</MenuItem>
-                    <MenuItem value="color">Color (৳{pricing.color_price_per_page}/p)</MenuItem>
+                    <MenuItem value="bw">B&W</MenuItem>
+                    <MenuItem value="color">Color</MenuItem>
                   </TextField>
                 </Box>
 
-                <Box sx={{ p: 3, borderRadius: 2, bgcolor: (theme) => alpha(theme.palette.primary.main, 0.05), border: '1px solid', borderColor: (theme) => alpha(theme.palette.primary.main, 0.1) }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                    <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>Total Print Cost</Typography>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 900, color: 'primary.main' }}>৳{currentTotalCost.toFixed(2)}</Typography>
+                <Box sx={{ p: 3, borderRadius: 2, bgcolor: 'action.hover', border: '1px solid', borderColor: 'divider' }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    <Typography variant="body2" color="text.secondary">Estimated Cost</Typography>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>৳{currentTotalCost.toFixed(2)}</Typography>
                   </Box>
-                  <Divider sx={{ my: 1.5, opacity: 0.5 }} />
                   <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>Wallet Balance</Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 800 }}>৳{balance.toFixed(2)}</Typography>
+                    <Typography variant="body2" color="text.secondary">Wallet Balance</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>৳{balance.toFixed(2)}</Typography>
                   </Box>
                 </Box>
 
@@ -228,15 +224,18 @@ export default function UploadPage() {
                   sx={{ 
                     bgcolor: 'text.primary', color: 'background.default', 
                     py: 2, borderRadius: 2, fontWeight: 800,
-                    '&:hover': { bgcolor: 'text.secondary' },
-                    '&.Mui-disabled': { bgcolor: alpha('#000', 0.1) }
+                    '&:hover': { bgcolor: 'grey.800' }
                   }}
                   startIcon={uploading ? <CircularProgress size={20} color="inherit" /> : <Printer size={22} />}
                 >
-                  {uploading ? 'Processing...' : 'Generate Print Job'}
+                  {uploading ? 'Adding to Queue...' : 'Add to Print Queue'}
                 </Button>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'center', opacity: 0.6 }}>
-                  <ShieldCheck size={14} /><Typography variant="caption" sx={{ fontWeight: 700 }}>SECURE ENCRYPTED UPLOAD</Typography>
+                
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'center', opacity: 0.5 }}>
+                  <ShieldCheck size={14} />
+                  <Typography variant="caption" sx={{ fontWeight: 700, letterSpacing: 0.5 }}>
+                    SECURE PDF PROCESSING
+                  </Typography>
                 </Box>
               </Box>
             </CardContent>
