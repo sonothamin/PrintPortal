@@ -25,7 +25,8 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Tooltip
+  Tooltip,
+  Stack
 } from '@mui/material';
 import {
   Search,
@@ -52,24 +53,28 @@ export default function HistoryPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   
-  // Modals state
   const [qrJob, setQrJob] = useState<PrintJob | null>(null);
   const [cancelJob, setCancelJob] = useState<PrintJob | null>(null);
   const [isCancelling, setIsCancelling] = useState(false);
 
   const fetchJobs = useCallback(async () => {
     setLoading(true);
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return;
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
 
-    const { data } = await supabase
-      .from('print_jobs')
-      .select('*')
-      .eq('user_id', session.user.id)
-      .order('created_at', { ascending: false });
+      const { data } = await supabase
+        .from('print_jobs')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .order('created_at', { ascending: false });
 
-    if (data) setJobs(data as PrintJob[]);
-    setLoading(false);
+      if (data) setJobs(data as PrintJob[]);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -105,12 +110,11 @@ export default function HistoryPage() {
           Print History
         </Typography>
         <Typography color="text.secondary" sx={{ fontWeight: 500 }}>
-          Track and audit all your past printing activity on PrintPortal.
+          Track and audit all your past printing activity.
         </Typography>
       </Box>
 
       <Card variant="outlined" sx={{ borderRadius: 2, mb: 4, overflow: 'hidden' }}>
-        {/* Toolbar */}
         <Box sx={{ p: 3, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
           <TextField 
             placeholder="Search by filename or code..." 
@@ -162,24 +166,40 @@ export default function HistoryPage() {
               ) : filteredJobs.length > 0 ? filteredJobs.map((job) => (
                 <TableRow key={job.id} hover>
                   <TableCell>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                    <Stack direction="row" spacing={1.5} alignItems="center">
                       <Box sx={{ p: 1, borderRadius: 1.5, bgcolor: (theme) => alpha(theme.palette.primary.main, 0.05), color: 'primary.main', display: 'flex' }}>
                         <FileText size={18} />
                       </Box>
                       <Typography variant="body2" sx={{ fontWeight: 700 }}>{job.file_name}</Typography>
-                    </Box>
+                    </Stack>
                   </TableCell>
                   <TableCell sx={{ color: 'text.secondary', fontSize: '0.8rem', fontWeight: 500 }}>
                     {new Date(job.created_at).toLocaleDateString()}
-                    <Typography variant="caption" display="block" sx={{ opacity: 0.6 }}>{new Date(job.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Typography>
+                    <Typography variant="caption" display="block" sx={{ opacity: 0.6 }}>
+                      {new Date(job.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </Typography>
                   </TableCell>
                   <TableCell>
                     <Chip 
-                      label={job.status} 
+                      label={job.status.toUpperCase()} 
                       size="small" 
-                      variant="soft"
-                      color={job.status === 'completed' ? 'success' : job.status === 'canceled' ? 'error' : 'warning'}
-                      sx={{ fontWeight: 900, textTransform: 'uppercase', fontSize: '0.6rem', borderRadius: 1 }} 
+                      sx={{ 
+                        fontWeight: 900, 
+                        fontSize: '0.6rem', 
+                        borderRadius: 1,
+                        bgcolor: (theme) => {
+                          const color = job.status === 'completed' ? theme.palette.success : 
+                                        job.status === 'canceled' ? theme.palette.error : 
+                                        theme.palette.warning;
+                          return alpha(color.main, 0.1);
+                        },
+                        color: (theme) => {
+                          const color = job.status === 'completed' ? theme.palette.success : 
+                                        job.status === 'canceled' ? theme.palette.error : 
+                                        theme.palette.warning;
+                          return color.dark;
+                        }
+                      }} 
                     />
                   </TableCell>
                   <TableCell>
@@ -200,7 +220,7 @@ export default function HistoryPage() {
                     ৳{job.cost.toFixed(2)}
                   </TableCell>
                   <TableCell align="right">
-                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                    <Stack direction="row" spacing={1} justifyContent="flex-end">
                       {job.status === 'pending' && (
                         <>
                           <Tooltip title="View QR">
@@ -215,10 +235,10 @@ export default function HistoryPage() {
                           </Tooltip>
                         </>
                       )}
-                      {job.status !== 'pending' && (
+                      {(job.status === 'completed' || job.status === 'canceled') && (
                         <Typography variant="caption" sx={{ color: 'text.disabled', fontWeight: 800 }}>LOCKED</Typography>
                       )}
-                    </Box>
+                    </Stack>
                   </TableCell>
                 </TableRow>
               )) : (
@@ -274,7 +294,7 @@ export default function HistoryPage() {
         <DialogContent>
           <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.secondary' }}>
             Are you sure you want to cancel the print job for <strong>{cancelJob?.file_name}</strong>? 
-            This action cannot be undone and your credits will be refunded.
+            Your credits will be refunded.
           </Typography>
         </DialogContent>
         <DialogActions sx={{ p: 2.5, pt: 0 }}>
