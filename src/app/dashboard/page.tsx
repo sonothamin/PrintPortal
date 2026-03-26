@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { supabase } from '@/lib/supabase';
+import { formatTimeAgo } from '@/utils/date';
 import {
   Grid,
   Typography,
@@ -23,7 +24,8 @@ import {
   DialogContent,
   DialogTitle,
   Stack,
-  Skeleton
+  Skeleton,
+  Tooltip
 } from '@mui/material';
 import {
   UploadCloud,
@@ -35,7 +37,9 @@ import {
   X,
   Clock,
   CheckCircle2,
-  XCircle
+  XCircle,
+  Copy,
+  FileText
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -71,7 +75,7 @@ export default function DashboardPage() {
       if (!session) return;
 
       const [jobsRes, profileRes, kiosksRes] = await Promise.all([
-        supabase.from('print_jobs').select('*').eq('user_id', session.user.id).order('created_at', { ascending: false }).limit(5),
+        supabase.from('print_jobs').select('*').eq('user_id', session.user.id).order('created_at', { ascending: false }).limit(10),
         supabase.from('profiles').select('*').eq('id', session.user.id).single(),
         supabase.from('kiosks').select('name, status').limit(5)
       ]);
@@ -90,6 +94,10 @@ export default function DashboardPage() {
     fetchData();
   }, [fetchData]);
 
+  const handleCopy = (code: string) => {
+    navigator.clipboard.writeText(code);
+  };
+
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return 'Good Morning';
@@ -97,39 +105,24 @@ export default function DashboardPage() {
     return 'Good Evening';
   };
 
-  const StatusBadge = ({ status }: { status: PrintJob['status'] }) => {
-    const configs = {
-      pending: { color: 'warning', icon: <Clock size={12} /> },
-      processing: { color: 'info', icon: <Zap size={12} /> },
-      completed: { color: 'success', icon: <CheckCircle2 size={12} /> },
-      canceled: { color: 'error', icon: <XCircle size={12} /> }
-    };
-    const config = configs[status] || configs.pending;
-    return (
-      <Chip
-        label={status.toUpperCase()}
-        size="small"
-        icon={config.icon}
-        color={config.color as any}
-        sx={{ fontWeight: 900, fontSize: '0.65rem', borderRadius: 1 }}
-      />
-    );
-  };
+  const pendingJobs = jobs.filter(j => j.status === 'pending' || j.status === 'processing');
+  const pastJobs = jobs.filter(j => j.status === 'completed' || j.status === 'canceled').slice(0, 5);
 
   return (
     <DashboardLayout>
+      {/* Header & Balance Section */}
       <Box sx={{ mb: 6, display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'flex-end' }, gap: 3 }}>
         <Box>
           <Typography variant="h4" sx={{ fontWeight: 900, mb: 1, letterSpacing: -1.5 }}>
             {loading ? <Skeleton width={200} /> : `${getGreeting()}, ${profile?.full_name?.split(' ')[0] || 'User'}!`}
           </Typography>
-          <Typography color="text.secondary" variant="body2" sx={{ fontWeight: 500 }}>
+          <Typography color="text.secondary" variant="body2" sx={{ fontWeight: 600 }}>
             {loading ? <Skeleton width={250} /> : (profile?.wallet_balance ?? 0) < 5
               ? "Your balance is low. Top up to keep printing!"
               : "Ready to turn those digital files into paper?"}
           </Typography>
         </Box>
-
+        
         <Card variant="outlined" sx={{ borderRadius: 2, px: 3, py: 1.5, display: 'flex', alignItems: 'center', gap: 2, bgcolor: (theme) => alpha(theme.palette.success.main, 0.05), borderColor: 'success.main', borderStyle: 'dashed' }}>
           <Box sx={{ bgcolor: 'success.main', p: 0.8, borderRadius: 1.5, color: 'white', display: 'flex' }}>
             <Wallet size={18} />
@@ -143,9 +136,64 @@ export default function DashboardPage() {
         </Card>
       </Box>
 
+      {/* Jobs in Queue Section */}
+      <Box sx={{ mb: 5 }}>
+        <Typography variant="h6" sx={{ fontWeight: 900, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Clock size={20} /> Jobs in Queue
+        </Typography>
+        <Grid container spacing={2}>
+          {loading ? [...Array(2)].map((_, i) => (
+            <Grid key={i} size={{ xs: 12, sm: 6, md: 4 }}>
+              <Skeleton variant="rounded" height={120} sx={{ borderRadius: 2 }} />
+            </Grid>
+          )) : pendingJobs.length > 0 ? pendingJobs.map((job) => (
+            <Grid key={job.id} size={{ xs: 12, sm: 6, md: 4 }}>
+              <Card variant="outlined" sx={{ borderRadius: 2, position: 'relative', transition: 'transform 0.2s', '&:hover': { transform: 'translateY(-4px)' } }}>
+                <CardContent sx={{ p: 2 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, maxWidth: '70%' }}>
+                      <FileText size={16} className="text-primary" />
+                      <Typography variant="body2" noWrap sx={{ fontWeight: 800 }}>{job.file_name}</Typography>
+                    </Box>
+                    <Chip label={job.status.toUpperCase()} size="small" color={job.status === 'pending' ? 'warning' : 'info'} sx={{ fontSize: '0.6rem', fontWeight: 900, height: 20 }} />
+                  </Box>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
+                    Uploaded {formatTimeAgo(job.created_at)}
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Button 
+                      fullWidth 
+                      size="small" 
+                      variant="contained" 
+                      startIcon={<QrCode size={14} />} 
+                      onClick={() => setQrJob(job)}
+                      sx={{ fontWeight: 800, borderRadius: 1.5 }}
+                    >
+                      QR Code
+                    </Button>
+                    <Tooltip title="Copy Release Code">
+                      <IconButton size="small" onClick={() => handleCopy(job.release_code)} sx={{ bgcolor: (theme) => alpha(theme.palette.primary.main, 0.1), borderRadius: 1.5 }}>
+                        <Copy size={16} />
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+          )) : (
+            <Grid size={{ xs: 12 }}>
+              <Box sx={{ py: 4, textAlign: 'center', bgcolor: (theme) => alpha(theme.palette.divider, 0.05), borderRadius: 2, border: '1px dashed', borderColor: 'divider' }}>
+                <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>No active jobs in the queue.</Typography>
+              </Box>
+            </Grid>
+          )}
+        </Grid>
+      </Box>
+
       <Grid container spacing={4}>
+        {/* Recent Activity Table */}
         <Grid size={{ xs: 12, md: 8 }}>
-          <Card variant="outlined" sx={{ borderRadius: 2, mb: 4, border: 'none', boxShadow: (theme) => theme.palette.mode === 'dark' ? '0 4px 20px rgba(0,0,0,0.5)' : '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}>
+          <Card variant="outlined" sx={{ borderRadius: 2, border: 'none', boxShadow: (theme) => theme.palette.mode === 'dark' ? '0 4px 20px rgba(0,0,0,0.5)' : '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}>
             <CardContent sx={{ p: 4 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                 <Typography variant="h6" sx={{ fontWeight: 900 }}>Recent Activity</Typography>
@@ -159,22 +207,26 @@ export default function DashboardPage() {
                       <TableCell sx={{ fontWeight: 800, fontSize: '0.7rem', color: 'text.secondary' }}>DOCUMENT</TableCell>
                       <TableCell sx={{ fontWeight: 800, fontSize: '0.7rem', color: 'text.secondary' }}>STATUS</TableCell>
                       <TableCell align="right" sx={{ fontWeight: 800, fontSize: '0.7rem', color: 'text.secondary' }}>COST</TableCell>
-                      <TableCell align="right"></TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {loading ? [...Array(3)].map((_, i) => (
-                      <TableRow key={i}><TableCell colSpan={4}><Skeleton height={45} /></TableCell></TableRow>
-                    )) : jobs.map((job) => (
+                      <TableRow key={i}><TableCell colSpan={3}><Skeleton height={45} /></TableCell></TableRow>
+                    )) : pastJobs.map((job) => (
                       <TableRow key={job.id} hover>
-                        <TableCell sx={{ fontWeight: 700, fontSize: '0.85rem' }}>{job.file_name}</TableCell>
-                        <TableCell><StatusBadge status={job.status} /></TableCell>
-                        <TableCell align="right" sx={{ fontWeight: 800 }}>৳{job.cost.toFixed(2)}</TableCell>
-                        <TableCell align="right">
-                          {job.release_code && (
-                            <IconButton size="small" onClick={() => setQrJob(job)} color="primary"><QrCode size={18} /></IconButton>
-                          )}
+                        <TableCell>
+                          <Typography variant="body2" sx={{ fontWeight: 700 }}>{job.file_name}</Typography>
+                          <Typography variant="caption" color="text.secondary">{formatTimeAgo(job.created_at)}</Typography>
                         </TableCell>
+                        <TableCell>
+                          <Chip 
+                            label={job.status.toUpperCase()} 
+                            size="small" 
+                            color={job.status === 'completed' ? 'success' : 'error'} 
+                            sx={{ fontWeight: 900, fontSize: '0.6rem', borderRadius: 1 }} 
+                          />
+                        </TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 800 }}>৳{job.cost.toFixed(2)}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -184,16 +236,14 @@ export default function DashboardPage() {
           </Card>
         </Grid>
 
+        {/* Sidebar Actions & Kiosks */}
         <Grid size={{ xs: 12, md: 4 }}>
           <Card
             sx={{
               borderRadius: 2,
-              // Use the actual primary brand color for the gradient
               background: (theme) => theme.palette.mode === 'dark'
                 ? `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${alpha(theme.palette.primary.main, 0.2)} 100%)`
                 : `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.light} 100%)`,
-
-              // Dynamically set text color based on the background color
               color: (theme) => theme.palette.getContrastText(theme.palette.primary.main),
               mb: 4,
               position: 'relative',
@@ -212,23 +262,19 @@ export default function DashboardPage() {
                 <Typography variant="h6" sx={{ fontWeight: 900 }}>Ready to print?</Typography>
               </Box>
               <Typography sx={{ mb: 4, opacity: 0.9, fontSize: '0.9rem', fontWeight: 500 }}>
-                Upload your documents now and release them at any PrintPortal kiosk instantly.
+                Upload documents and release them at any PrintPortal kiosk instantly.
               </Typography>
-              <Button
-                variant="contained"
-                fullWidth
+              <Button 
+                variant="contained" 
+                fullWidth 
                 size="large"
-                sx={{
-                  // Ensure button stands out against the primary background
-                  bgcolor: 'background.paper',
-                  color: 'primary.main',
-                  fontWeight: 900,
+                sx={{ 
+                  bgcolor: 'background.paper', 
+                  color: 'primary.main', 
+                  fontWeight: 900, 
                   borderRadius: 2.5,
                   py: 1.5,
-                  '&:hover': {
-                    bgcolor: (theme) => alpha(theme.palette.background.paper, 0.9),
-                    transform: 'scale(1.02)'
-                  },
+                  '&:hover': { bgcolor: (theme) => alpha(theme.palette.background.paper, 0.9), transform: 'scale(1.02)' },
                   transition: 'all 0.2s'
                 }}
                 onClick={() => window.location.href = '/dashboard/upload'}
@@ -262,8 +308,9 @@ export default function DashboardPage() {
         </Grid>
       </Grid>
 
-      <Dialog
-        open={!!qrJob}
+      {/* QR Code Dialog */}
+      <Dialog 
+        open={!!qrJob} 
         onClose={() => setQrJob(null)}
         PaperProps={{ sx: { borderRadius: 2, p: 1, maxWidth: 360, textAlign: 'center' } }}
       >
@@ -277,11 +324,20 @@ export default function DashboardPage() {
               <QRCodeSVG value={qrJob.release_code} size={200} level="H" />
             </Box>
           )}
-          <Box>
-            <Typography variant="h5" sx={{ fontFamily: 'monospace', fontWeight: 900, color: 'primary.main', letterSpacing: 3 }}>
+          <Box sx={{ width: '100%' }}>
+            <Typography variant="h5" sx={{ fontFamily: 'monospace', fontWeight: 900, color: 'primary.main', letterSpacing: 3, mb: 1 }}>
               {qrJob?.release_code}
             </Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+            <Button 
+              size="small" 
+              variant="outlined" 
+              startIcon={<Copy size={14} />} 
+              onClick={() => handleCopy(qrJob?.release_code || '')}
+              sx={{ mb: 2, borderRadius: 1.5, fontWeight: 700 }}
+            >
+              Copy Code
+            </Button>
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
               Scan this QR code at any PrintPortal kiosk to release your print job.
             </Typography>
           </Box>
