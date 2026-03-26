@@ -9,7 +9,7 @@ import {
 } from '@mui/material';
 import { 
   UploadCloud, FileText, X, Printer, 
-  ShieldCheck, Info
+  ShieldCheck, Info 
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
@@ -32,17 +32,19 @@ export default function UploadPage() {
   const [balance, setBalance] = useState(0);
   const [status, setStatus] = useState({ text: '', type: 'info' as 'info' | 'success' | 'error' });
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => { 
+    fetchData(); 
+  }, []);
 
   const fetchData = async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
     
-    // Get Pricing
+    // Fetch current pricing settings
     const { data: setRes } = await supabase.from('settings').select('value').eq('key', 'print_pricing').single();
     if (setRes) setPricing(setRes.value);
     
-    // Get Balance (for display only)
+    // Fetch wallet balance for user reference
     const { data: profile } = await supabase.from('profiles').select('wallet_balance').eq('id', session.user.id).single();
     if (profile) setBalance(profile.wallet_balance);
   };
@@ -55,7 +57,7 @@ export default function UploadPage() {
     if (!session) return;
 
     setAnalyzing(true);
-    setStatus({ text: 'Analyzing document...', type: 'info' });
+    setStatus({ text: 'Uploading and analyzing document...', type: 'info' });
 
     try {
       const fileExt = file.name.split('.').pop();
@@ -78,12 +80,12 @@ export default function UploadPage() {
         pages: Number(verifyData.page_count) || 0,
         cost: Number(verifyData.cost) || 0
       });
-      setStatus({ text: 'Document verified and ready.', type: 'success' });
+      setStatus({ text: 'File analyzed. You can now add it to the queue.', type: 'success' });
     } catch (err: any) {
       setStatus({ text: err.message, type: 'error' });
     } finally {
       setAnalyzing(false);
-      e.target.value = '';
+      e.target.value = ''; // Clear input for re-selection
     }
   };
 
@@ -103,7 +105,7 @@ export default function UploadPage() {
 
       if (error || !data.success) throw new Error(error?.message || 'Failed to add to queue');
       
-      setStatus({ text: 'Success! Job added to queue.', type: 'success' });
+      setStatus({ text: 'Success! Document added to your print queue.', type: 'success' });
       setActiveFile(null);
       fetchData();
     } catch (err: any) {
@@ -121,14 +123,18 @@ export default function UploadPage() {
     <DashboardLayout>
       <Box sx={{ mb: 4 }}>
         <Typography variant="h4" sx={{ fontWeight: 800, mb: 1 }}>Upload Document</Typography>
-        <Typography color="text.secondary">Prepare your PDF for the printing queue.</Typography>
+        <Typography color="text.secondary">Select a PDF to prepare it for printing.</Typography>
       </Box>
 
-      {status.text && <Alert severity={status.type} sx={{ mb: 4, borderRadius: 2 }}>{status.text}</Alert>}
+      {status.text && (
+        <Alert severity={status.type} sx={{ mb: 4, borderRadius: 2 }}>
+          {status.text}
+        </Alert>
+      )}
 
       <Grid container spacing={4}>
-        {/* Left Side: Upload Area */}
-        <Grid item xs={12} md={7}>
+        {/* Document Selection Column */}
+        <Grid size={{ xs: 12, md: 7 }}>
           {!activeFile && !analyzing ? (
             <Box 
               component="label"
@@ -142,8 +148,8 @@ export default function UploadPage() {
             >
               <input type="file" hidden accept=".pdf" onChange={handleFileChange} />
               <UploadCloud size={48} style={{ marginBottom: 16, color: '#999' }} />
-              <Typography variant="h6" sx={{ fontWeight: 800 }}>Select PDF File</Typography>
-              <Typography variant="body2" color="text.secondary">Files are stored securely until printed</Typography>
+              <Typography variant="h6" sx={{ fontWeight: 800 }}>Click to select PDF</Typography>
+              <Typography variant="body2" color="text.secondary">Maximum file size: 50MB</Typography>
             </Box>
           ) : (
             <Card variant="outlined" sx={{ borderRadius: 2 }}>
@@ -158,10 +164,10 @@ export default function UploadPage() {
                   </Box>
                   <Box sx={{ flex: 1 }}>
                     <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-                      {analyzing ? 'Reading PDF...' : activeFile?.name}
+                      {analyzing ? 'Processing PDF...' : activeFile?.name}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
-                      {analyzing ? 'Calculating pages...' : `${activeFile?.size} • ${activeFile?.pages} Pages`}
+                      {analyzing ? 'Checking page counts...' : `${activeFile?.size} • ${activeFile?.pages} Pages`}
                     </Typography>
                   </Box>
                   {!uploading && !analyzing && (
@@ -176,16 +182,16 @@ export default function UploadPage() {
           )}
 
           <Alert icon={<Info size={20} />} severity="info" sx={{ mt: 3, borderRadius: 2 }}>
-            You can upload documents now regardless of your balance. 
-            <strong> Payment will be deducted from your wallet only when you release the job at the printer.</strong>
+            Documents can be uploaded with any balance. 
+            <strong> Payment is only deducted from your wallet when you print the job at a station.</strong>
           </Alert>
         </Grid>
 
-        {/* Right Side: Config & Summary */}
-        <Grid item xs={12} md={5}>
+        {/* Configuration Column */}
+        <Grid size={{ xs: 12, md: 5 }}>
           <Card variant="outlined" sx={{ borderRadius: 2 }}>
             <CardContent sx={{ p: 4 }}>
-              <Typography variant="h6" sx={{ fontWeight: 800, mb: 3 }}>Print Settings</Typography>
+              <Typography variant="h6" sx={{ fontWeight: 800, mb: 3 }}>Print Options</Typography>
               
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                 <Box sx={{ display: 'flex', gap: 2 }}>
@@ -228,13 +234,13 @@ export default function UploadPage() {
                   }}
                   startIcon={uploading ? <CircularProgress size={20} color="inherit" /> : <Printer size={22} />}
                 >
-                  {uploading ? 'Adding to Queue...' : 'Add to Print Queue'}
+                  {uploading ? 'Processing...' : 'Add to Print Queue'}
                 </Button>
                 
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'center', opacity: 0.5 }}>
                   <ShieldCheck size={14} />
                   <Typography variant="caption" sx={{ fontWeight: 700, letterSpacing: 0.5 }}>
-                    SECURE PDF PROCESSING
+                    ENCRYPTED PDF PROCESSING
                   </Typography>
                 </Box>
               </Box>
