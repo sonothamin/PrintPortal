@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, Suspense, useCallback } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import AdminPortalLayout from '@/components/AdminPortalLayout';
 import { 
   Typography, Box, Card, Table, TableBody, TableCell, TableContainer, 
@@ -17,7 +17,7 @@ import {
 import { supabase } from '@/lib/supabase';
 import { QRCodeSVG } from 'qrcode.react';
 
-// Status Configuration with Icons and Themes
+// Status Configuration mapping
 const STATUS_CONFIG: Record<string, { color: 'warning' | 'info' | 'success' | 'error' | 'secondary', icon: any, label: string }> = {
   pending: { color: 'warning', icon: Clock, label: 'Pending' },
   processing: { color: 'info', icon: Zap, label: 'Processing' },
@@ -40,8 +40,9 @@ function GlobalQueueContent() {
   const [qrJob, setQrJob] = useState<any | null>(null);
   const [statusMsg, setStatusMsg] = useState<{ text: string, type: 'success' | 'error' | 'info' } | null>(null);
 
+  // Status Menu State
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
+  const [activeJobId, setActiveJobId] = useState<string | null>(null);
 
   const fetchJobs = useCallback(async () => {
     setLoading(true);
@@ -50,22 +51,33 @@ function GlobalQueueContent() {
     if (filterStatus !== 'all') query = query.eq('status', filterStatus);
     if (userIdFilter) query = query.eq('user_id', userIdFilter);
     
-    const { data } = await query;
-    if (data) setJobs(data);
+    const { data, error } = await query;
+    if (!error && data) setJobs(data);
     setLoading(false);
   }, [filterStatus, userIdFilter]);
 
   useEffect(() => { fetchJobs(); }, [fetchJobs]);
 
-  const handleStatusUpdate = async (newStatus: string) => {
-    if (!selectedJobId) return;
-    const { error } = await supabase.from('print_jobs').update({ status: newStatus }).eq('id', selectedJobId);
-    if (!error) {
-      setJobs(prev => prev.map(j => j.id === selectedJobId ? { ...j, status: newStatus } : j));
-      setStatusMsg({ text: `Job updated to ${newStatus.toUpperCase()}`, type: 'success' });
-    }
+  const openStatusMenu = (event: React.MouseEvent<HTMLElement>, jobId: string) => {
+    setAnchorEl(event.currentTarget);
+    setActiveJobId(jobId);
+  };
+
+  const closeStatusMenu = () => {
     setAnchorEl(null);
-    setSelectedJobId(null);
+    setActiveJobId(null);
+  };
+
+  const handleStatusUpdate = async (newStatus: string) => {
+    if (!activeJobId) return;
+    const { error } = await supabase.from('print_jobs').update({ status: newStatus }).eq('id', activeJobId);
+    if (!error) {
+      setJobs(prev => prev.map(j => j.id === activeJobId ? { ...j, status: newStatus } : j));
+      setStatusMsg({ text: `Status changed to ${newStatus}`, type: 'success' });
+    } else {
+      setStatusMsg({ text: 'Update failed', type: 'error' });
+    }
+    closeStatusMenu();
   };
 
   const handleRelease = async (jobId: string) => {
@@ -74,7 +86,6 @@ function GlobalQueueContent() {
       const { data, error } = await supabase.functions.invoke('release-job', { body: { job_id: jobId } });
       if (error || !data.success) throw new Error(error?.message || 'Release failed');
       setStatusMsg({ text: 'Print job released!', type: 'success' });
-      if (data.file_url) window.open(data.file_url, '_blank');
       fetchJobs();
     } catch (err: any) { 
       setStatusMsg({ text: err.message, type: 'error' }); 
@@ -84,14 +95,13 @@ function GlobalQueueContent() {
   };
 
   const filteredJobs = jobs.filter(job => 
-    job.file_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    job.file_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     job.profiles?.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     job.release_code?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
     <AdminPortalLayout>
-      {/* Header Area */}
       <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
         <Box>
           <Typography variant="h4" sx={{ fontWeight: 900, letterSpacing: -1.5 }}>Mission Control</Typography>
@@ -101,9 +111,9 @@ function GlobalQueueContent() {
           variant="contained" 
           onClick={fetchJobs} 
           startIcon={<RefreshCw size={16} className={loading ? 'animate-spin' : ''} />} 
-          sx={{ fontWeight: 800, borderRadius: 2, px: 3 }}
+          sx={{ fontWeight: 800, borderRadius: 2, px: 3, boxShadow: 0 }}
         >
-          Refresh Data
+          Sync
         </Button>
       </Box>
 
@@ -113,25 +123,25 @@ function GlobalQueueContent() {
         </Alert>
       )}
 
-      {/* Stats Area using CSS Grid in Box */}
+      {/* Stats Quick-View Cards */}
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr 1fr' }, gap: 2, mb: 3 }}>
         <Card variant="outlined" sx={{ p: 2, borderRadius: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
           <Box sx={{ p: 1, borderRadius: 2, bgcolor: alpha(theme.palette.warning.main, 0.1), color: 'warning.main', display: 'flex' }}>
             <Clock size={24} />
           </Box>
           <Box>
-            <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase' }}>Active Pending</Typography>
+            <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase' }}>Waiting</Typography>
             <Typography variant="h6" sx={{ fontWeight: 900 }}>{jobs.filter(j => j.status === 'pending').length}</Typography>
           </Box>
         </Card>
       </Box>
 
-      {/* Main Table Card */}
+      {/* Main Table Container */}
       <Card variant="outlined" sx={{ borderRadius: 3, overflow: 'hidden' }}>
         <Box sx={{ p: 2, display: 'flex', gap: 2, bgcolor: alpha(theme.palette.background.default, 0.5), borderBottom: '1px solid', borderColor: 'divider', flexWrap: 'wrap' }}>
           <TextField 
             size="small" 
-            placeholder="Search records..." 
+            placeholder="Search filename, user, or code..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             InputProps={{ 
@@ -142,13 +152,14 @@ function GlobalQueueContent() {
           <TextField
             select
             size="small"
+            label="Filter Status"
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            sx={{ minWidth: 150, '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: 'background.paper' } }}
+            sx={{ minWidth: 160, '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: 'background.paper' } }}
           >
-            <MenuItem value="all">All Statuses</MenuItem>
+            <MenuItem value="all">All Jobs</MenuItem>
             {Object.keys(STATUS_CONFIG).map(s => (
-              <MenuItem key={s} value={s}>{s.replace('_', ' ').toUpperCase()}</MenuItem>
+              <MenuItem key={s} value={s}>{STATUS_CONFIG[s].label}</MenuItem>
             ))}
           </TextField>
         </Box>
@@ -171,32 +182,34 @@ function GlobalQueueContent() {
                 const StatusIcon = config.icon;
 
                 return (
-                  <TableRow key={job.id} hover>
+                  <TableRow key={job.id} hover sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
                     <TableCell sx={{ py: 1.5 }}>
                       <Stack direction="row" spacing={2} alignItems="center">
                         <Box sx={{ p: 1, borderRadius: 1.5, bgcolor: alpha(theme.palette.primary.main, 0.05), color: 'primary.main', display: 'flex' }}>
                           <FileText size={18} />
                         </Box>
                         <Box>
-                          <Typography variant="body2" sx={{ fontWeight: 800 }}>{job.file_name}</Typography>
+                          <Typography variant="body2" sx={{ fontWeight: 800, lineHeight: 1.2 }}>{job.file_name}</Typography>
                           <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                            <User size={10} /> {job.profiles?.full_name || 'System User'}
+                            <User size={10} /> {job.profiles?.full_name || 'Guest User'}
                           </Typography>
                         </Box>
                       </Stack>
                     </TableCell>
                     <TableCell>
                       <Chip 
-                        icon={<StatusIcon size={14} />}
+                        icon={<StatusIcon size={14} className={job.status === 'processing' ? 'animate-pulse' : ''} />}
                         label={config.label}
-                        onClick={(e) => { setAnchorEl(e.currentTarget); setSelectedJobId(job.id); }}
+                        onClick={(e) => openStatusMenu(e, job.id)}
+                        onDelete={(e) => openStatusMenu(e as any, job.id)}
                         deleteIcon={<ChevronDown size={14} />}
-                        onDelete={(e) => { setAnchorEl(e.currentTarget); setSelectedJobId(job.id); }}
                         sx={{ 
                           fontWeight: 900, fontSize: '0.65rem', textTransform: 'uppercase', borderRadius: 1.5,
                           bgcolor: alpha(theme.palette[config.color].main, 0.1),
                           color: theme.palette[config.color].dark,
-                          '&:hover': { bgcolor: alpha(theme.palette[config.color].main, 0.2) }
+                          cursor: 'pointer',
+                          '&:hover': { bgcolor: alpha(theme.palette[config.color].main, 0.2) },
+                          '& .MuiChip-deleteIcon': { color: 'inherit', '&:hover': { color: 'inherit' } }
                         }}
                       />
                     </TableCell>
@@ -212,17 +225,21 @@ function GlobalQueueContent() {
                             size="small" variant="contained" disableElevation
                             onClick={() => handleRelease(job.id)}
                             disabled={releasing === job.id}
-                            sx={{ borderRadius: 1.5, fontWeight: 900, fontSize: '0.7rem', bgcolor: 'text.primary' }}
+                            sx={{ borderRadius: 1.5, fontWeight: 900, fontSize: '0.7rem', bgcolor: 'text.primary', color: 'background.paper', '&:hover': { bgcolor: 'grey.900' } }}
                           >
-                            Release
+                            {releasing === job.id ? '...' : 'Release'}
                           </Button>
                         )}
-                        <IconButton size="small" onClick={() => setQrJob(job)} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5 }}>
-                          <QrCode size={16} />
-                        </IconButton>
-                        <IconButton size="small" sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5 }}>
-                          <Eye size={16} />
-                        </IconButton>
+                        <Tooltip title="View QR">
+                          <IconButton size="small" onClick={() => setQrJob(job)} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5 }}>
+                            <QrCode size={16} />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Details">
+                          <IconButton size="small" sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5 }}>
+                            <Eye size={16} />
+                          </IconButton>
+                        </Tooltip>
                       </Stack>
                     </TableCell>
                   </TableRow>
@@ -233,26 +250,33 @@ function GlobalQueueContent() {
         </TableContainer>
       </Card>
 
-      {/* Status Menu */}
-      <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => setAnchorEl(null)} PaperProps={{ sx: { borderRadius: 3, minWidth: 200, mt: 1 } }}>
-        <Box sx={{ px: 2, py: 1 }}><Typography variant="caption" sx={{ fontWeight: 900, color: 'text.disabled' }}>SET STATUS</Typography></Box>
+      {/* Status Selection Menu */}
+      <Menu 
+        anchorEl={anchorEl} 
+        open={Boolean(anchorEl)} 
+        onClose={closeStatusMenu} 
+        PaperProps={{ sx: { borderRadius: 3, minWidth: 200, mt: 1, boxShadow: theme.shadows[4] } }}
+      >
+        <Box sx={{ px: 2, py: 1 }}><Typography variant="caption" sx={{ fontWeight: 900, color: 'text.disabled' }}>UPDATE STATUS</Typography></Box>
         <Divider />
         {Object.entries(STATUS_CONFIG).map(([key, val]) => (
-          <MenuItem key={key} onClick={() => handleStatusUpdate(key)} sx={{ py: 1, fontSize: '0.8rem', fontWeight: 700, gap: 1.5 }}>
+          <MenuItem key={key} onClick={() => handleStatusUpdate(key)} sx={{ py: 1.2, fontSize: '0.8rem', fontWeight: 700, gap: 1.5 }}>
             <Box sx={{ color: `${val.color}.main`, display: 'flex' }}><val.icon size={16} /></Box> 
             {val.label}
           </MenuItem>
         ))}
       </Menu>
 
-      {/* QR Dialog */}
+      {/* QR Code Dialog */}
       <Dialog open={!!qrJob} onClose={() => setQrJob(null)} PaperProps={{ sx: { borderRadius: 4, p: 2, textAlign: 'center' } }}>
-        <DialogTitle sx={{ fontWeight: 900 }}>Job QR Key</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 900 }}>Release Code</DialogTitle>
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-          <Box sx={{ p: 2, bgcolor: 'white', borderRadius: 2, border: '1px solid divider' }}>
+          <Box sx={{ p: 2, bgcolor: 'white', borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
             <QRCodeSVG value={qrJob?.release_code || ''} size={200} />
           </Box>
-          <Typography variant="h5" sx={{ fontWeight: 900, fontFamily: 'monospace' }}>{qrJob?.release_code}</Typography>
+          <Typography variant="h5" sx={{ fontWeight: 900, fontFamily: 'monospace', letterSpacing: 2 }}>
+            {qrJob?.release_code}
+          </Typography>
         </DialogContent>
         <DialogActions sx={{ pb: 2, px: 3 }}>
           <Button onClick={() => setQrJob(null)} fullWidth variant="outlined" sx={{ fontWeight: 800, borderRadius: 2 }}>Close</Button>
@@ -264,7 +288,7 @@ function GlobalQueueContent() {
 
 export default function GlobalQueuePage() {
   return (
-    <Suspense fallback={<Box sx={{ p: 10, textAlign: 'center' }}><CircularProgress /></Box>}>
+    <Suspense fallback={<Box sx={{ display: 'flex', justifyContent: 'center', p: 10 }}><CircularProgress thickness={5} /></Box>}>
       <GlobalQueueContent />
     </Suspense>
   );
