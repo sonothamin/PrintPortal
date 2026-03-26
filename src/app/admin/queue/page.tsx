@@ -7,16 +7,17 @@ import {
   Typography, Box, Card, Table, TableBody, TableCell, TableContainer, 
   TableHead, TableRow, Chip, IconButton, TextField, MenuItem, Button,
   Dialog, DialogTitle, DialogContent, DialogActions, alpha, useTheme,
-  Alert, Stack, Grid, Tooltip, CircularProgress, Menu, Divider
+  Alert, Stack, Tooltip, CircularProgress, Menu, Divider
 } from '@mui/material';
 import { 
-  Filter, Search, Eye, Download, Clock, CheckCircle2, XCircle,
+  Search, Eye, Clock, CheckCircle2, XCircle,
   AlertCircle, Zap, RefreshCw, RotateCcw, QrCode, User, 
   ChevronDown, FileText
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { QRCodeSVG } from 'qrcode.react';
 
+// Status Configuration with Icons and Themes
 const STATUS_CONFIG: Record<string, { color: 'warning' | 'info' | 'success' | 'error' | 'secondary', icon: any, label: string }> = {
   pending: { color: 'warning', icon: Clock, label: 'Pending' },
   processing: { color: 'info', icon: Zap, label: 'Processing' },
@@ -28,7 +29,6 @@ const STATUS_CONFIG: Record<string, { color: 'warning' | 'info' | 'success' | 'e
 
 function GlobalQueueContent() {
   const searchParams = useSearchParams();
-  const router = useRouter();
   const userIdFilter = searchParams.get('user_id');
   const theme = useTheme();
 
@@ -46,8 +46,10 @@ function GlobalQueueContent() {
   const fetchJobs = useCallback(async () => {
     setLoading(true);
     let query = supabase.from('print_jobs').select('*, profiles(full_name)').order('created_at', { ascending: false });
+    
     if (filterStatus !== 'all') query = query.eq('status', filterStatus);
     if (userIdFilter) query = query.eq('user_id', userIdFilter);
+    
     const { data } = await query;
     if (data) setJobs(data);
     setLoading(false);
@@ -63,6 +65,7 @@ function GlobalQueueContent() {
       setStatusMsg({ text: `Job updated to ${newStatus.toUpperCase()}`, type: 'success' });
     }
     setAnchorEl(null);
+    setSelectedJobId(null);
   };
 
   const handleRelease = async (jobId: string) => {
@@ -70,11 +73,14 @@ function GlobalQueueContent() {
     try {
       const { data, error } = await supabase.functions.invoke('release-job', { body: { job_id: jobId } });
       if (error || !data.success) throw new Error(error?.message || 'Release failed');
-      setStatusMsg({ text: 'Released!', type: 'success' });
+      setStatusMsg({ text: 'Print job released!', type: 'success' });
       if (data.file_url) window.open(data.file_url, '_blank');
       fetchJobs();
-    } catch (err: any) { setStatusMsg({ text: err.message, type: 'error' }); }
-    finally { setReleasing(null); }
+    } catch (err: any) { 
+      setStatusMsg({ text: err.message, type: 'error' }); 
+    } finally { 
+      setReleasing(null); 
+    }
   };
 
   const filteredJobs = jobs.filter(job => 
@@ -85,51 +91,76 @@ function GlobalQueueContent() {
 
   return (
     <AdminPortalLayout>
-      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      {/* Header Area */}
+      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
         <Box>
-          <Typography variant="h4" sx={{ fontWeight: 900, letterSpacing: -1.5 }}>Global Queue</Typography>
-          <Typography color="text.secondary" sx={{ fontWeight: 500 }}>Management Dashboard</Typography>
+          <Typography variant="h4" sx={{ fontWeight: 900, letterSpacing: -1.5 }}>Mission Control</Typography>
+          <Typography color="text.secondary" sx={{ fontWeight: 500 }}>Global Print Queue Management</Typography>
         </Box>
-        <Button variant="contained" onClick={fetchJobs} startIcon={<RefreshCw size={16} className={loading ? 'animate-spin' : ''} />} sx={{ fontWeight: 800, borderRadius: 2 }}>
-          Sync
+        <Button 
+          variant="contained" 
+          onClick={fetchJobs} 
+          startIcon={<RefreshCw size={16} className={loading ? 'animate-spin' : ''} />} 
+          sx={{ fontWeight: 800, borderRadius: 2, px: 3 }}
+        >
+          Refresh Data
         </Button>
       </Box>
 
-      {statusMsg && <Alert severity={statusMsg.type} sx={{ mb: 3, borderRadius: 2 }}>{statusMsg.text}</Alert>}
+      {statusMsg && (
+        <Alert severity={statusMsg.type} onClose={() => setStatusMsg(null)} sx={{ mb: 3, borderRadius: 2, fontWeight: 700 }}>
+          {statusMsg.text}
+        </Alert>
+      )}
 
-      {/* Grid Fix: No item prop, uses size prop */}
-      <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid size={{ xs: 12, sm: 4 }}>
-          <Card variant="outlined" sx={{ p: 2, borderRadius: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Box sx={{ p: 1, borderRadius: 2, bgcolor: alpha(theme.palette.warning.main, 0.1), color: 'warning.main', display: 'flex' }}>
-              <Clock size={24} />
-            </Box>
-            <Box>
-              <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase' }}>Active Pending</Typography>
-              <Typography variant="h6" sx={{ fontWeight: 900 }}>{jobs.filter(j => j.status === 'pending').length}</Typography>
-            </Box>
-          </Card>
-        </Grid>
-      </Grid>
+      {/* Stats Area using CSS Grid in Box */}
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr 1fr' }, gap: 2, mb: 3 }}>
+        <Card variant="outlined" sx={{ p: 2, borderRadius: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Box sx={{ p: 1, borderRadius: 2, bgcolor: alpha(theme.palette.warning.main, 0.1), color: 'warning.main', display: 'flex' }}>
+            <Clock size={24} />
+          </Box>
+          <Box>
+            <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase' }}>Active Pending</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 900 }}>{jobs.filter(j => j.status === 'pending').length}</Typography>
+          </Box>
+        </Card>
+      </Box>
 
+      {/* Main Table Card */}
       <Card variant="outlined" sx={{ borderRadius: 3, overflow: 'hidden' }}>
-        <Box sx={{ p: 2, display: 'flex', gap: 2, bgcolor: alpha(theme.palette.background.default, 0.5) }}>
+        <Box sx={{ p: 2, display: 'flex', gap: 2, bgcolor: alpha(theme.palette.background.default, 0.5), borderBottom: '1px solid', borderColor: 'divider', flexWrap: 'wrap' }}>
           <TextField 
-            size="small" fullWidth placeholder="Search..." value={searchQuery}
+            size="small" 
+            placeholder="Search records..." 
+            value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            InputProps={{ startAdornment: <Search size={16} style={{ marginRight: 8, opacity: 0.5 }} /> }}
-            sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: 'background.paper' } }}
+            InputProps={{ 
+              startAdornment: <Search size={16} style={{ marginRight: 8, opacity: 0.5 }} />,
+            }}
+            sx={{ flexGrow: 1, '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: 'background.paper' } }}
           />
+          <TextField
+            select
+            size="small"
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            sx={{ minWidth: 150, '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: 'background.paper' } }}
+          >
+            <MenuItem value="all">All Statuses</MenuItem>
+            {Object.keys(STATUS_CONFIG).map(s => (
+              <MenuItem key={s} value={s}>{s.replace('_', ' ').toUpperCase()}</MenuItem>
+            ))}
+          </TextField>
         </Box>
 
         <TableContainer>
           <Table size="small">
             <TableHead sx={{ bgcolor: alpha(theme.palette.text.primary, 0.02) }}>
               <TableRow>
-                <TableCell sx={{ fontWeight: 900 }}>DOCUMENT</TableCell>
+                <TableCell sx={{ fontWeight: 900, py: 2 }}>DOCUMENT & USER</TableCell>
                 <TableCell sx={{ fontWeight: 900 }}>STATUS</TableCell>
                 <TableCell sx={{ fontWeight: 900 }}>CODE</TableCell>
-                <TableCell align="right" sx={{ fontWeight: 900 }}>ACTIONS</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 900, pr: 3 }}>ACTIONS</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -138,11 +169,21 @@ function GlobalQueueContent() {
               ) : filteredJobs.map((job) => {
                 const config = STATUS_CONFIG[job.status] || STATUS_CONFIG.pending;
                 const StatusIcon = config.icon;
+
                 return (
                   <TableRow key={job.id} hover>
                     <TableCell sx={{ py: 1.5 }}>
-                      <Typography variant="body2" sx={{ fontWeight: 800 }}>{job.file_name}</Typography>
-                      <Typography variant="caption" color="text.secondary">{job.profiles?.full_name}</Typography>
+                      <Stack direction="row" spacing={2} alignItems="center">
+                        <Box sx={{ p: 1, borderRadius: 1.5, bgcolor: alpha(theme.palette.primary.main, 0.05), color: 'primary.main', display: 'flex' }}>
+                          <FileText size={18} />
+                        </Box>
+                        <Box>
+                          <Typography variant="body2" sx={{ fontWeight: 800 }}>{job.file_name}</Typography>
+                          <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                            <User size={10} /> {job.profiles?.full_name || 'System User'}
+                          </Typography>
+                        </Box>
+                      </Stack>
                     </TableCell>
                     <TableCell>
                       <Chip 
@@ -154,14 +195,17 @@ function GlobalQueueContent() {
                         sx={{ 
                           fontWeight: 900, fontSize: '0.65rem', textTransform: 'uppercase', borderRadius: 1.5,
                           bgcolor: alpha(theme.palette[config.color].main, 0.1),
-                          color: theme.palette[config.color].dark
+                          color: theme.palette[config.color].dark,
+                          '&:hover': { bgcolor: alpha(theme.palette[config.color].main, 0.2) }
                         }}
                       />
                     </TableCell>
                     <TableCell>
-                      <Typography sx={{ fontFamily: 'monospace', fontWeight: 900, color: 'primary.main' }}>{job.release_code || '---'}</Typography>
+                      <Typography sx={{ fontFamily: 'monospace', fontWeight: 900, color: 'primary.main', bgcolor: alpha(theme.palette.primary.main, 0.05), px: 1, borderRadius: 1, display: 'inline-block' }}>
+                        {job.release_code || '---'}
+                      </Typography>
                     </TableCell>
-                    <TableCell align="right">
+                    <TableCell align="right" sx={{ pr: 2 }}>
                       <Stack direction="row" spacing={1} justifyContent="flex-end">
                         {job.status === 'pending' && (
                           <Button 
@@ -173,8 +217,11 @@ function GlobalQueueContent() {
                             Release
                           </Button>
                         )}
-                        <IconButton size="small" onClick={() => setQrJob(job)} sx={{ border: '1px solid', borderColor: 'divider' }}>
+                        <IconButton size="small" onClick={() => setQrJob(job)} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5 }}>
                           <QrCode size={16} />
+                        </IconButton>
+                        <IconButton size="small" sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5 }}>
+                          <Eye size={16} />
                         </IconButton>
                       </Stack>
                     </TableCell>
@@ -186,23 +233,30 @@ function GlobalQueueContent() {
         </TableContainer>
       </Card>
 
-      <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => setAnchorEl(null)} PaperProps={{ sx: { borderRadius: 3, minWidth: 180 } }}>
+      {/* Status Menu */}
+      <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => setAnchorEl(null)} PaperProps={{ sx: { borderRadius: 3, minWidth: 200, mt: 1 } }}>
+        <Box sx={{ px: 2, py: 1 }}><Typography variant="caption" sx={{ fontWeight: 900, color: 'text.disabled' }}>SET STATUS</Typography></Box>
+        <Divider />
         {Object.entries(STATUS_CONFIG).map(([key, val]) => (
-          <MenuItem key={key} onClick={() => handleStatusUpdate(key)} sx={{ fontSize: '0.8rem', fontWeight: 700, gap: 1.5 }}>
-            <val.icon size={16} /> {val.label}
+          <MenuItem key={key} onClick={() => handleStatusUpdate(key)} sx={{ py: 1, fontSize: '0.8rem', fontWeight: 700, gap: 1.5 }}>
+            <Box sx={{ color: `${val.color}.main`, display: 'flex' }}><val.icon size={16} /></Box> 
+            {val.label}
           </MenuItem>
         ))}
       </Menu>
 
+      {/* QR Dialog */}
       <Dialog open={!!qrJob} onClose={() => setQrJob(null)} PaperProps={{ sx: { borderRadius: 4, p: 2, textAlign: 'center' } }}>
         <DialogTitle sx={{ fontWeight: 900 }}>Job QR Key</DialogTitle>
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-          <Box sx={{ p: 2, bgcolor: 'white', borderRadius: 3, border: '1px solid divider' }}>
+          <Box sx={{ p: 2, bgcolor: 'white', borderRadius: 2, border: '1px solid divider' }}>
             <QRCodeSVG value={qrJob?.release_code || ''} size={200} />
           </Box>
           <Typography variant="h5" sx={{ fontWeight: 900, fontFamily: 'monospace' }}>{qrJob?.release_code}</Typography>
         </DialogContent>
-        <DialogActions sx={{ pb: 2, px: 3 }}><Button onClick={() => setQrJob(null)} fullWidth variant="outlined" sx={{ fontWeight: 800, borderRadius: 2 }}>Close</Button></DialogActions>
+        <DialogActions sx={{ pb: 2, px: 3 }}>
+          <Button onClick={() => setQrJob(null)} fullWidth variant="outlined" sx={{ fontWeight: 800, borderRadius: 2 }}>Close</Button>
+        </DialogActions>
       </Dialog>
     </AdminPortalLayout>
   );
