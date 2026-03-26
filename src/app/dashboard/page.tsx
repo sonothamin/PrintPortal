@@ -213,48 +213,48 @@ export default function DashboardPage() {
         <Grid size={{ xs: 12, md: 4 }}>
           <Card
             sx={{
-              borderRadius: 2,
-              // Uses theme palette instead of hardcoded hex
-              background: (theme) => theme.palette.mode === 'dark'
-                ? `linear-gradient(135deg, ${theme.palette.common.black} 0%, ${alpha(theme.palette.common.white, 0.05)} 100%)`
-                : `linear-gradient(135deg, ${theme.palette.text.primary} 0%, ${alpha(theme.palette.text.primary, 0.8)} 100%)`,
-              color: (theme) => theme.palette.getContrastText(theme.palette.text.primary),
+              height: '100%',
+              borderRadius: 4,
+              bgcolor: 'text.primary', // This creates the high-contrast black/white look
+              color: 'background.paper',
               mb: 4,
               position: 'relative',
               overflow: 'hidden',
-              boxShadow: (theme) => theme.palette.mode === 'dark'
-                ? '0 20px 25px -5px rgb(0 0 0 / 0.5)'
-                : '0 20px 25px -5px rgb(0 0 0 / 0.1)'
+              boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)'
             }}
           >
-            <Box sx={{ position: 'absolute', top: -20, right: -20, opacity: 0.1, transform: 'rotate(15deg)', color: 'inherit' }}>
+            {/* Large Background Icon */}
+            <Box sx={{ position: 'absolute', right: -20, bottom: -20, opacity: 0.05, transform: 'rotate(-15deg)' }}>
               <Printer size={160} />
             </Box>
+
             <CardContent sx={{ p: 4, position: 'relative', zIndex: 1 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-                <Box sx={{ bgcolor: 'rgba(255,255,255,0.2)', p: 1, borderRadius: 2 }}>
+                <Box sx={{ bgcolor: 'rgba(255,255,255,0.1)', p: 1, borderRadius: 2, display: 'flex' }}>
                   <UploadCloud size={24} />
                 </Box>
                 <Typography variant="h6" sx={{ fontWeight: 900 }}>
                   Ready to print?
                 </Typography>
               </Box>
-              <Typography sx={{ mb: 4, opacity: 0.8, fontSize: '0.9rem', lineHeight: 1.6 }}>
+
+              <Typography sx={{ mb: 4, opacity: 0.6, fontSize: '0.9rem', lineHeight: 1.6, fontWeight: 500 }}>
                 Upload your files now and pick them up at any available kiosk location instantly.
               </Typography>
+
               <Button
                 fullWidth
                 variant="contained"
                 size="large"
                 sx={{
-                  bgcolor: 'background.paper',
+                  bgcolor: 'background.paper', // Button color is the "inverse" of the card
                   color: 'text.primary',
                   fontWeight: 900,
-                  borderRadius: 2.5,
-                  py: 1.5,
+                  borderRadius: 3,
+                  py: 1.8,
                   '&:hover': {
-                    bgcolor: 'background.default',
-                    transform: 'scale(1.02)'
+                    bgcolor: (theme) => alpha(theme.palette.background.paper, 0.9),
+                    transform: 'translateY(-2px)'
                   },
                   transition: 'all 0.2s'
                 }}

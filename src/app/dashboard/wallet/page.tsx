@@ -150,9 +150,7 @@ export default function WalletPage() {
               <Typography variant="caption" sx={{ opacity: 0.6 }}>Valid for all services</Typography>
             </CardContent>
 
-            <Divider sx={{ borderColor: 'rgba(255,255,255,0.1)' }} />
-
-            <Box sx={{ px: 4, py: 2, bgcolor: 'rgba(255,255,255,0.03)', display: 'flex', justifyContent: 'space-between' }}>
+            <Box sx={{ px: 4, py: 2, display: 'flex', justifyContent: 'space-between' }}>
               <Typography variant="caption" sx={{ opacity: 0.5, fontWeight: 700 }}>Total Spent</Typography>
               <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>৳{totalSpent.toFixed(2)}</Typography>
             </Box>
