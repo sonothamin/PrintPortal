@@ -182,8 +182,7 @@ export default function UploadPage() {
           )}
 
           <Alert icon={<Info size={20} />} severity="info" sx={{ mt: 3, borderRadius: 2 }}>
-            Documents can be uploaded with any balance. 
-            <strong> Payment is only deducted from your wallet when you print the job at a station.</strong>
+            <strong> Payment is only deducted from your wallet when you print the job at a kiosk.</strong>
           </Alert>
         </Grid>
 
