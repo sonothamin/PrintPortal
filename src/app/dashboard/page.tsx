@@ -115,7 +115,7 @@ export default function DashboardPage() {
             {getGreeting()}, {profile?.full_name?.split(' ')[0] || 'My Good Sire!'}!
           </Typography>
           <Typography color="text.secondary" variant="body2" sx={{ fontWeight: 500 }}>
-            {profile?.wallet_balance && profile.wallet_balance < 5
+            {(profile?.wallet_balance ?? 0) < 5
               ? "Your balance is low. Top up to keep printing!"
               : "Ready to turn those digital files into paper?"}
           </Typography>
