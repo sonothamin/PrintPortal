@@ -253,7 +253,13 @@ export default function WalletPage() {
       </Card>
 
       {/* QR Scanner Dialog */}
-      <Dialog open={qrOpen} onClose={() => setQrOpen(false)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: 2, aspectRatio: '1/1', overflow: 'hidden' } }}>
+      <Dialog 
+        open={qrOpen} 
+        onClose={() => setQrOpen(false)} 
+        maxWidth="xs" 
+        fullWidth 
+        PaperProps={{ sx: { borderRadius: 4, aspectRatio: '1/1', overflow: 'hidden' } }}
+      >
         <DialogTitle sx={{ fontWeight: 900, pb: 0 }}>Scan Token QR Code</DialogTitle>
         <DialogContent sx={{ p: 0, display: 'flex', flexDirection: 'column' }}>
           <Box id="reader" sx={{ flexGrow: 1, width: '100%', '& video': { objectFit: 'cover !important', height: '100% !important' } }} />
@@ -262,5 +268,6 @@ export default function WalletPage() {
           <Button onClick={() => setQrOpen(false)} color="inherit" fullWidth>Cancel</Button>
         </DialogActions>
       </Dialog>
-      );
+    </DashboardLayout>
+  );
 }
