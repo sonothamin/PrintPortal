@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import {
-  Grid2 as Grid, Typography, Card, CardContent, Box, Button, Table,
+  Grid, Typography, Card, CardContent, Box, Button, Table,
   TableBody, TableCell, TableContainer, TableHead, TableRow,
   alpha, IconButton, Dialog, DialogContent, DialogTitle, 
   Stack, Skeleton
@@ -73,7 +73,7 @@ export default function DashboardPage() {
         kiosks: (kiosksRes.data as Kiosk[]) || []
       });
     } catch (e) {
-      console.error(e);
+      console.error('Fetch Error:', e);
     } finally {
       setLoading(false);
     }
@@ -118,6 +118,7 @@ export default function DashboardPage() {
         </Card>
       </Box>
 
+      {/* Grid container with v7 sizing */}
       <Grid container spacing={3}>
         {/* Activity Table */}
         <Grid size={{ xs: 12, md: 8 }}>
