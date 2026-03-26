@@ -107,22 +107,25 @@ export default function DashboardPage() {
           </Typography>
         </Box>
 
-        <Card variant="outlined" sx={{ borderRadius: 3, px: 3, py: 1.5, display: 'flex', alignItems: 'center', gap: 2, bgcolor: 'success.main', color: 'white', border: 'none' }}>
-          <Wallet size={20} />
-          <Box>
-            <Typography variant="caption" sx={{ fontWeight: 700, opacity: 0.8, display: 'block', lineHeight: 1 }}>BALANCE</Typography>
-            <Typography variant="h6" sx={{ fontWeight: 900, lineHeight: 1 }}>
+        {/* Refined Balance Card to match new style */}
+        <Card sx={{ 
+          borderRadius: 3, bgcolor: 'text.primary', color: 'background.paper', 
+          position: 'relative', overflow: 'hidden', minWidth: 200 
+        }}>
+          <CardContent sx={{ p: 2, zIndex: 1, position: 'relative' }}>
+            <Typography variant="overline" sx={{ opacity: 0.5, fontWeight: 900, lineHeight: 1 }}>Wallet Balance</Typography>
+            <Typography variant="h5" sx={{ fontWeight: 900, mt: 0.5 }}>
               ৳{loading ? '0.00' : data.profile?.wallet_balance?.toFixed(2)}
             </Typography>
-          </Box>
+          </CardContent>
+          <Wallet size={60} style={{ position: 'absolute', right: -10, bottom: -10, opacity: 0.1, transform: 'rotate(-15deg)' }} />
         </Card>
       </Box>
 
-      {/* Grid container with v7 sizing */}
       <Grid container spacing={3}>
         {/* Activity Table */}
         <Grid size={{ xs: 12, md: 8 }}>
-          <Card variant="outlined" sx={{ borderRadius: 3 }}>
+          <Card variant="outlined" sx={{ borderRadius: 3, height: '100%' }}>
             <CardContent sx={{ p: 3 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                 <Typography variant="h6" sx={{ fontWeight: 800 }}>Recent Activity</Typography>
@@ -169,14 +172,35 @@ export default function DashboardPage() {
         {/* Sidebar */}
         <Grid size={{ xs: 12, md: 4 }}>
           <Stack spacing={3}>
-            <Card sx={{ borderRadius: 4, bgcolor: 'text.primary', color: 'background.paper', p: 1 }}>
-              <CardContent>
-                <Typography variant="h6" sx={{ fontWeight: 900 }}>Ready to print?</Typography>
-                <Typography variant="body2" sx={{ opacity: 0.7, mb: 3 }}>Upload and release at any kiosk.</Typography>
-                <Button variant="contained" fullWidth href="/dashboard/upload" sx={{ bgcolor: 'white', color: 'black', fontWeight: 800, '&:hover': { bgcolor: '#eee' } }}>
+            {/* NEW Drop-in Style for "Ready to print?" */}
+            <Card sx={{
+              borderRadius: 3, bgcolor: 'text.primary', color: 'background.paper',
+              position: 'relative', overflow: 'hidden'
+            }}>
+              <CardContent sx={{ p: 4, zIndex: 1, position: 'relative' }}>
+                <Typography variant="overline" sx={{ opacity: 0.5, fontWeight: 900, letterSpacing: 1.5 }}>
+                  Quick Actions
+                </Typography>
+                <Typography variant="h4" sx={{ fontWeight: 900, mt: 1, mb: 0.5, letterSpacing: -1 }}>
+                  Ready to print?
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.6, mb: 3 }}>
+                  Upload and release at any kiosk.
+                </Typography>
+                <Button 
+                  variant="contained" 
+                  fullWidth 
+                  href="/dashboard/upload" 
+                  sx={{ 
+                    bgcolor: 'background.paper', color: 'text.primary', 
+                    fontWeight: 800, textTransform: 'none',
+                    '&:hover': { bgcolor: '#eee' } 
+                  }}
+                >
                   Upload Now
                 </Button>
               </CardContent>
+              <Printer size={140} style={{ position: 'absolute', right: -30, bottom: -30, opacity: 0.05, transform: 'rotate(-15deg)' }} />
             </Card>
 
             <Card variant="outlined" sx={{ borderRadius: 3 }}>
