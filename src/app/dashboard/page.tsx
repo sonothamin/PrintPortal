@@ -134,7 +134,7 @@ export default function DashboardPage() {
         <Grid size={{ xs: 12, md: 8 }}>
           <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Typography variant="h6" sx={{ fontWeight: 900, display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Clock size={20} /> Jobs in Queue
+              <Clock size={20} />Pending Print Jobs
             </Typography>
             <IconButton size="small" onClick={fetchData} disabled={loading}>
               <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
