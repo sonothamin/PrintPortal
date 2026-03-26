@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import {
-  Grid, Typography, Card, CardContent, Box, Button, Table,
+  Grid2 as Grid, Typography, Card, CardContent, Box, Button, Table,
   TableBody, TableCell, TableContainer, TableHead, TableRow,
   alpha, IconButton, Dialog, DialogContent, DialogTitle, 
   Stack, Skeleton
@@ -120,7 +120,7 @@ export default function DashboardPage() {
 
       <Grid container spacing={3}>
         {/* Activity Table */}
-        <Grid item xs={12} md={8}>
+        <Grid size={{ xs: 12, md: 8 }}>
           <Card variant="outlined" sx={{ borderRadius: 3 }}>
             <CardContent sx={{ p: 3 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -166,7 +166,7 @@ export default function DashboardPage() {
         </Grid>
 
         {/* Sidebar */}
-        <Grid item xs={12} md={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <Stack spacing={3}>
             <Card sx={{ borderRadius: 4, bgcolor: 'text.primary', color: 'background.paper', p: 1 }}>
               <CardContent>
