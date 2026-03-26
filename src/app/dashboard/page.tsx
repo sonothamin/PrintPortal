@@ -106,12 +106,12 @@ export default function DashboardPage() {
     };
     const config = configs[status] || configs.pending;
     return (
-      <Chip 
-        label={status.toUpperCase()} 
-        size="small" 
+      <Chip
+        label={status.toUpperCase()}
+        size="small"
         icon={config.icon}
         color={config.color as any}
-        sx={{ fontWeight: 900, fontSize: '0.65rem', borderRadius: 1 }} 
+        sx={{ fontWeight: 900, fontSize: '0.65rem', borderRadius: 1 }}
       />
     );
   };
@@ -129,7 +129,7 @@ export default function DashboardPage() {
               : "Ready to turn those digital files into paper?"}
           </Typography>
         </Box>
-        
+
         <Card variant="outlined" sx={{ borderRadius: 2, px: 3, py: 1.5, display: 'flex', alignItems: 'center', gap: 2, bgcolor: (theme) => alpha(theme.palette.success.main, 0.05), borderColor: 'success.main', borderStyle: 'dashed' }}>
           <Box sx={{ bgcolor: 'success.main', p: 0.8, borderRadius: 1.5, color: 'white', display: 'flex' }}>
             <Wallet size={18} />
@@ -188,19 +188,20 @@ export default function DashboardPage() {
           <Card
             sx={{
               borderRadius: 2,
+              // Use the actual primary brand color for the gradient
               background: (theme) => theme.palette.mode === 'dark'
-                ? `linear-gradient(135deg, ${theme.palette.common.black} 0%, ${alpha(theme.palette.common.white, 0.05)} 100%)`
-                : `linear-gradient(135deg, ${theme.palette.text.primary} 0%, ${alpha(theme.palette.text.primary, 0.8)} 100%)`,
-              color: (theme) => theme.palette.getContrastText(theme.palette.text.primary),
+                ? `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${alpha(theme.palette.primary.main, 0.2)} 100%)`
+                : `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.light} 100%)`,
+
+              // Dynamically set text color based on the background color
+              color: (theme) => theme.palette.getContrastText(theme.palette.primary.main),
               mb: 4,
               position: 'relative',
               overflow: 'hidden',
-              boxShadow: (theme) => theme.palette.mode === 'dark'
-                ? '0 20px 25px -5px rgb(0 0 0 / 0.5)'
-                : '0 20px 25px -5px rgb(0 0 0 / 0.1)'
+              boxShadow: (theme) => `0 20px 25px -5px ${alpha(theme.palette.primary.main, 0.2)}`,
             }}
           >
-            <Box sx={{ position: 'absolute', top: -20, right: -20, opacity: 0.1, transform: 'rotate(15deg)', color: 'inherit' }}>
+            <Box sx={{ position: 'absolute', top: -20, right: -20, opacity: 0.15, transform: 'rotate(15deg)', color: 'inherit' }}>
               <Printer size={160} />
             </Box>
             <CardContent sx={{ p: 4, position: 'relative', zIndex: 1 }}>
@@ -210,20 +211,24 @@ export default function DashboardPage() {
                 </Box>
                 <Typography variant="h6" sx={{ fontWeight: 900 }}>Ready to print?</Typography>
               </Box>
-              <Typography sx={{ mb: 4, opacity: 0.8, fontSize: '0.9rem', fontWeight: 500 }}>
+              <Typography sx={{ mb: 4, opacity: 0.9, fontSize: '0.9rem', fontWeight: 500 }}>
                 Upload your documents now and release them at any PrintPortal kiosk instantly.
               </Typography>
-              <Button 
-                variant="contained" 
-                fullWidth 
+              <Button
+                variant="contained"
+                fullWidth
                 size="large"
-                sx={{ 
-                  bgcolor: 'background.paper', 
-                  color: 'text.primary', 
-                  fontWeight: 900, 
+                sx={{
+                  // Ensure button stands out against the primary background
+                  bgcolor: 'background.paper',
+                  color: 'primary.main',
+                  fontWeight: 900,
                   borderRadius: 2.5,
                   py: 1.5,
-                  '&:hover': { bgcolor: 'background.default', transform: 'scale(1.02)' },
+                  '&:hover': {
+                    bgcolor: (theme) => alpha(theme.palette.background.paper, 0.9),
+                    transform: 'scale(1.02)'
+                  },
                   transition: 'all 0.2s'
                 }}
                 onClick={() => window.location.href = '/dashboard/upload'}
@@ -257,8 +262,8 @@ export default function DashboardPage() {
         </Grid>
       </Grid>
 
-      <Dialog 
-        open={!!qrJob} 
+      <Dialog
+        open={!!qrJob}
         onClose={() => setQrJob(null)}
         PaperProps={{ sx: { borderRadius: 2, p: 1, maxWidth: 360, textAlign: 'center' } }}
       >
