@@ -4,14 +4,14 @@ import React, { useEffect, useState, useRef } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { supabase } from '@/lib/supabase';
 import { Html5Qrcode } from 'html5-qrcode';
-import { 
-  Box, Typography, Grid, Card, CardContent, Button, TextField, 
-  Divider, List, ListItem, ListItemText, ListItemIcon, 
-  InputAdornment, Dialog, DialogTitle, DialogContent, 
-  DialogActions, CircularProgress, IconButton, Stack
+import {
+  Box, Typography, Grid, Card, CardContent, Button, TextField,
+  Divider, List, ListItem, ListItemText, ListItemIcon,
+  InputAdornment, Dialog, DialogTitle, DialogContent,
+  DialogActions, CircularProgress, IconButton, Stack, useTheme, alpha, Fade
 } from '@mui/material';
-import { 
-  Wallet, ArrowUpRight, ArrowDownLeft, QrCode, 
+import {
+  Wallet, ArrowUpRight, ArrowDownLeft, QrCode,
   History, Zap, CheckCircle2, RotateCw, X
 } from 'lucide-react';
 
@@ -27,12 +27,14 @@ export default function WalletPage() {
   const [balance, setBalance] = useState<number>(0);
   const [totalSpent, setTotalSpent] = useState<number>(0);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [rechargeAmount, setRechargeAmount] = useState<string>(''); 
+  const [rechargeAmount, setRechargeAmount] = useState<string>('');
   const [recharging, setRecharging] = useState(false);
   const [statusMsg, setStatusMsg] = useState({ text: '', type: '' });
   const [qrOpen, setQrOpen] = useState(false);
-  const [isScanning, setIsScanning] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+
+  const theme = useTheme();
+  const scannerRef = useRef<Html5Qrcode | null>(null);
 
   const fetchData = React.useCallback(async () => {
     setRefreshing(true);
@@ -50,7 +52,7 @@ export default function WalletPage() {
 
     if (profileRes.data) setBalance(profileRes.data.wallet_balance);
     if (txRes.data) setTransactions(txRes.data);
-    
+
     if (spentRes.data) {
       const total = spentRes.data.reduce((acc, curr) => acc + Math.abs(Number(curr.amount)), 0);
       setTotalSpent(total);
@@ -62,21 +64,23 @@ export default function WalletPage() {
     fetchData();
   }, [fetchData]);
 
-  const handleRecharge = React.useCallback(async () => {
+  const handleRecharge = React.useCallback(async (codeOverride?: string) => {
+    const codeToUse = codeOverride || rechargeAmount;
+    if (!codeToUse) return;
+
     setRecharging(true);
     setStatusMsg({ text: '', type: '' });
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('Not authenticated');
-      if (!rechargeAmount) throw new Error('Please enter a valid token code');
 
       const { data, error } = await supabase.functions.invoke('redeem-token', {
-        body: { token_code: rechargeAmount }
+        body: { token_code: codeToUse }
       });
 
-      if (error) throw new Error(error.message || 'Failed to connect to redemption server');
-      if (data.success === false) throw new Error(data.error || 'Invalid or already used token');
+      if (error) throw new Error(error.message || 'Failed to connect');
+      if (data.success === false) throw new Error(data.error || 'Invalid token');
 
       setStatusMsg({ text: `Success! ৳${data.amount_added} added.`, type: 'success' });
       setRechargeAmount('');
@@ -88,8 +92,6 @@ export default function WalletPage() {
     }
   }, [rechargeAmount, fetchData]);
 
-  const scannerRef = useRef<Html5Qrcode | null>(null);
-
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
     if (qrOpen) {
@@ -97,28 +99,28 @@ export default function WalletPage() {
         const scanner = new Html5Qrcode("reader");
         scannerRef.current = scanner;
         scanner.start(
-          { facingMode: "environment" }, 
-          { fps: 10, qrbox: { width: 250, height: 250 } }, 
+          { facingMode: "environment" },
+          { fps: 10, qrbox: { width: 250, height: 250 } },
           (decodedText) => {
-            setRechargeAmount(decodedText);
             setQrOpen(false);
-            handleRecharge();
+            setRechargeAmount(decodedText);
+            handleRecharge(decodedText);
           },
-          () => {}
+          () => { }
         ).catch(console.error);
       }, 300);
     }
     return () => {
       clearTimeout(timeoutId);
       if (scannerRef.current?.isScanning) {
-        scannerRef.current.stop().then(() => scannerRef.current?.clear()).catch(() => {});
+        scannerRef.current.stop().then(() => scannerRef.current?.clear()).catch(() => { });
       }
     };
   }, [qrOpen, handleRecharge]);
 
   return (
     <DashboardLayout>
-      {/* Header */}
+      {/* Header Section */}
       <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Box>
           <Typography variant="h4" sx={{ fontWeight: 900, letterSpacing: -1.5 }}>Wallet</Typography>
@@ -129,74 +131,97 @@ export default function WalletPage() {
         </IconButton>
       </Box>
 
-      {/* Side by Side Section */}
+      {/* Main Grid: Asymmetric 4/8 Layout */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
-        {/* Balance Card */}
-        <Grid item xs={12} md={6}>
-          <Card sx={{ 
+        
+        {/* Balance Card - Compact (33% width) */}
+        <Grid item xs={12} md={4}>
+          <Card sx={{
             height: '100%', borderRadius: 4, bgcolor: 'text.primary', color: 'background.paper',
-            boxShadow: '0 10px 30px -5px rgba(0,0,0,0.15)', display: 'flex', flexDirection: 'column'
+            boxShadow: '0 10px 30px -5px rgba(0,0,0,0.15)', display: 'flex', flexDirection: 'column',
+            position: 'relative', overflow: 'hidden'
           }}>
-            <CardContent sx={{ p: 4, flexGrow: 1 }}>
-              <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 3 }}>
-                <Box sx={{ p: 1, borderRadius: 2, bgcolor: 'rgba(255,255,255,0.1)' }}>
-                  <Wallet size={24} />
-                </Box>
-                <Typography variant="h6" sx={{ fontWeight: 800 }}>Available Balance</Typography>
-              </Stack>
-              <Typography variant="h2" sx={{ fontWeight: 900, mb: 1 }}>৳{balance.toFixed(2)}</Typography>
-              <Typography variant="body2" sx={{ opacity: 0.6 }}>Standard credits for all printing jobs.</Typography>
+            <CardContent sx={{ p: 4, flexGrow: 1, zIndex: 1 }}>
+              <Typography variant="overline" sx={{ opacity: 0.5, fontWeight: 900, letterSpacing: 1.5 }}>
+                Available Credits
+              </Typography>
+              <Typography variant="h2" sx={{ fontWeight: 900, mt: 1, mb: 0.5, letterSpacing: -2 }}>
+                ৳{balance.toFixed(2)}
+              </Typography>
+              <Typography variant="caption" sx={{ opacity: 0.6, display: 'block' }}>
+                Valid for all printing services
+              </Typography>
             </CardContent>
+
             <Divider sx={{ borderColor: 'rgba(255,255,255,0.1)' }} />
-            <Box sx={{ px: 4, py: 2, display: 'flex', justifyContent: 'space-between' }}>
-              <Typography variant="caption" sx={{ opacity: 0.5, fontWeight: 700 }}>Lifetime Spent</Typography>
-              <Typography variant="caption" sx={{ fontWeight: 800 }}>৳{totalSpent.toFixed(2)}</Typography>
+
+            <Box sx={{ px: 4, py: 2, bgcolor: 'rgba(255,255,255,0.03)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Typography variant="caption" sx={{ opacity: 0.5, fontWeight: 700 }}>Total Spent</Typography>
+              <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>৳{totalSpent.toFixed(2)}</Typography>
             </Box>
+            <Wallet size={120} style={{ position: 'absolute', right: -20, bottom: -20, opacity: 0.05, transform: 'rotate(-15deg)' }} />
           </Card>
         </Grid>
 
-        {/* Recharge Card */}
-        <Grid item xs={12} md={6}>
-          <Card variant="outlined" sx={{ height: '100%', borderRadius: 4, display: 'flex', flexDirection: 'column' }}>
+        {/* Recharge Card - Functional (66% width) */}
+        <Grid item xs={12} md={8}>
+          <Card variant="outlined" sx={{ height: '100%', borderRadius: 4, bgcolor: 'background.paper' }}>
             <CardContent sx={{ p: 4 }}>
-              <Typography variant="h6" sx={{ fontWeight: 800, mb: 3 }}>Redeem Token</Typography>
-              <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
-                <TextField 
-                  fullWidth 
-                  placeholder="CODE-XXXX-XXXX" 
-                  value={rechargeAmount}
-                  onChange={(e) => setRechargeAmount(e.target.value.toUpperCase())}
-                  InputProps={{ startAdornment: <InputAdornment position="start"><Zap size={18} /></InputAdornment> }}
-                />
-                <Button 
-                  variant="outlined" 
-                  onClick={() => setQrOpen(true)}
-                  sx={{ borderRadius: 2, minWidth: 56, borderColor: 'divider' }}
-                >
-                  <QrCode size={20} />
-                </Button>
-              </Stack>
-              <Button 
+              <Typography variant="h6" sx={{ fontWeight: 800, mb: 1 }}>Top Up Account</Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                Redeem a voucher code or scan a QR to instantly add credits.
+              </Typography>
+
+              <Grid container spacing={2} alignItems="flex-start">
+                <Grid item xs={12} sm={8}>
+                  <TextField
+                    fullWidth
+                    placeholder="VOUCHER-CODE-HERE"
+                    value={rechargeAmount}
+                    onChange={(e) => setRechargeAmount(e.target.value.toUpperCase())}
+                    InputProps={{
+                      startAdornment: <InputAdornment position="start"><Zap size={18} /></InputAdornment>,
+                      sx: { borderRadius: 3, height: 56 }
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    onClick={() => setQrOpen(true)}
+                    startIcon={<QrCode size={20} />}
+                    sx={{ borderRadius: 3, height: 56, fontWeight: 700, borderStyle: 'dashed' }}
+                  >
+                    Scan QR
+                  </Button>
+                </Grid>
+              </Grid>
+
+              <Button
                 fullWidth variant="contained" size="large"
                 disabled={!rechargeAmount || recharging}
-                onClick={handleRecharge}
-                sx={{ 
-                  bgcolor: 'text.primary', color: 'background.paper', fontWeight: 800, borderRadius: 2,
+                onClick={() => handleRecharge()}
+                sx={{
+                  mt: 2, py: 1.8, bgcolor: 'text.primary', color: 'background.paper', fontWeight: 900, borderRadius: 3,
+                  boxShadow: '0 8px 20px -4px rgba(0,0,0,0.2)',
                   '&:hover': { bgcolor: 'primary.main' }
                 }}
               >
-                {recharging ? <CircularProgress size={24} color="inherit" /> : 'Apply Top Up'}
+                {recharging ? <CircularProgress size={24} color="inherit" /> : 'Confirm Redemption'}
               </Button>
 
               {statusMsg.text && (
                 <Fade in>
-                  <Box sx={{ 
-                    mt: 2, p: 1.5, borderRadius: 2, display: 'flex', alignItems: 'center', gap: 1,
-                    bgcolor: statusMsg.type === 'success' ? 'success.900' : 'error.900',
-                    color: statusMsg.type === 'success' ? 'success.main' : 'error.main'
+                  <Box sx={{
+                    mt: 2, p: 1.5, borderRadius: 2, display: 'flex', alignItems: 'center', gap: 1.5,
+                    bgcolor: statusMsg.type === 'success' ? alpha(theme.palette.success.main, 0.1) : alpha(theme.palette.error.main, 0.1),
+                    color: statusMsg.type === 'success' ? 'success.main' : 'error.main',
+                    border: '1px solid',
+                    borderColor: 'currentColor'
                   }}>
-                    {statusMsg.type === 'success' ? <CheckCircle2 size={16} /> : <X size={16} />}
-                    <Typography variant="caption" sx={{ fontWeight: 800 }}>{statusMsg.text}</Typography>
+                    {statusMsg.type === 'success' ? <CheckCircle2 size={18} /> : <X size={18} />}
+                    <Typography variant="body2" sx={{ fontWeight: 700 }}>{statusMsg.text}</Typography>
                   </Box>
                 </Fade>
               )}
@@ -205,6 +230,7 @@ export default function WalletPage() {
         </Grid>
       </Grid>
 
+      {/* Full-Width History Section (Outside of Grid) */}
       <Card variant="outlined" sx={{ borderRadius: 4, overflow: 'hidden' }}>
         <Box sx={{ px: 3, py: 2.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 900 }}>Transaction History</Typography>
@@ -215,17 +241,17 @@ export default function WalletPage() {
           {transactions.length > 0 ? transactions.map((tx, idx) => (
             <ListItem key={tx.id} divider={idx < transactions.length - 1} sx={{ px: 3, py: 2 }}>
               <ListItemIcon sx={{ minWidth: 48 }}>
-                <Box sx={{ 
-                  p: 1, borderRadius: 1.5, 
-                  bgcolor: tx.type === 'recharge' ? 'success.900' : 'action.hover',
+                <Box sx={{
+                  p: 1, borderRadius: 1.5,
+                  bgcolor: tx.type === 'recharge' ? alpha(theme.palette.success.main, 0.1) : 'action.hover',
                   color: tx.type === 'recharge' ? 'success.main' : 'text.primary'
                 }}>
                   {tx.type === 'recharge' ? <ArrowDownLeft size={20} /> : <ArrowUpRight size={20} />}
                 </Box>
               </ListItemIcon>
-              <ListItemText 
-                primary={<Typography variant="body2" sx={{ fontWeight: 700 }}>{tx.description}</Typography>} 
-                secondary={<Typography variant="caption" sx={{ opacity: 0.5 }}>{new Date(tx.created_at).toLocaleDateString()}</Typography>} 
+              <ListItemText
+                primary={<Typography variant="body2" sx={{ fontWeight: 700 }}>{tx.description}</Typography>}
+                secondary={<Typography variant="caption" sx={{ opacity: 0.5 }}>{new Date(tx.created_at).toLocaleDateString()}</Typography>}
               />
               <Typography variant="body2" sx={{ fontWeight: 900, color: tx.type === 'recharge' ? 'success.main' : 'inherit' }}>
                 {tx.type === 'recharge' ? '+' : '-'}৳{Math.abs(Number(tx.amount)).toFixed(2)}
@@ -239,6 +265,7 @@ export default function WalletPage() {
         </List>
       </Card>
 
+      {/* QR Scanner Dialog */}
       <Dialog open={qrOpen} onClose={() => setQrOpen(false)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: 4 } }}>
         <DialogTitle sx={{ fontWeight: 900 }}>Scan Token</DialogTitle>
         <DialogContent sx={{ p: 0 }}><Box id="reader" sx={{ width: '100%', aspectRatio: '1/1' }} /></DialogContent>
