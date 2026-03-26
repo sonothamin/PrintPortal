@@ -17,7 +17,7 @@ import { QRCodeSVG } from 'qrcode.react';
 
 // --- Configuration ---
 const STATUS_CONFIG = {
-  processing: { label: 'Processing', color: '#0288d1', icon: <Loader2 size={14} className="animate-spin" /> },
+  processing: { label: 'Processing', color: '#5a82e8', icon: <Zap size={14} /> },
   pending: { label: 'Pending', color: '#ed6c02', icon: <Clock size={14} /> },
   canceled: { label: 'Canceled', color: '#d32f2f', icon: <XCircle size={14} /> },
   refunded: { label: 'Refunded', color: '#9c27b0', icon: <Undo2 size={14} /> },
