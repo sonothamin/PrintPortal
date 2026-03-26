@@ -3,36 +3,36 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import {
-  Grid, 
-  Typography, 
-  Card, 
-  CardContent, 
-  Box, 
-  Button, 
+  Grid,
+  Typography,
+  Card,
+  CardContent,
+  Box,
+  Button,
   Table,
-  TableBody, 
-  TableCell, 
-  TableContainer, 
-  TableHead, 
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
   TableRow,
-  alpha, 
-  IconButton, 
-  Dialog, 
-  DialogContent, 
-  DialogTitle, 
-  Stack, 
+  alpha,
+  IconButton,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  Stack,
   Skeleton
 } from '@mui/material';
 import {
-  ExternalLink, 
-  Wallet, 
-  Zap, 
-  Printer, 
-  QrCode, 
-  X, 
-  Clock, 
-  CheckCircle2, 
-  XCircle, 
+  ExternalLink,
+  Wallet,
+  Zap,
+  Printer,
+  QrCode,
+  X,
+  Clock,
+  CheckCircle2,
+  XCircle,
   Undo2
 } from 'lucide-react';
 
@@ -119,7 +119,6 @@ export default function DashboardPage() {
 
   return (
     <DashboardLayout>
-      {/* Header */}
       <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
         <Box>
           <Typography variant="h4" sx={{ fontWeight: 900, letterSpacing: -1 }}>
@@ -145,7 +144,7 @@ export default function DashboardPage() {
       </Box>
 
       <Grid container spacing={3}>
-        <Grid size={{ xs: 12, md: 8 }}>
+        <Grid item xs={12} md={8}>
           <Card variant="outlined" sx={{ borderRadius: 3, height: '100%' }}>
             <CardContent sx={{ p: 3 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -190,32 +189,14 @@ export default function DashboardPage() {
           </Card>
         </Grid>
 
-        <Grid size={{ xs: 12, md: 4 }}>
+        <Grid item xs={12} md={4}>
           <Stack spacing={3}>
-            <Card sx={{
-              borderRadius: 3, bgcolor: 'text.primary', color: 'background.paper',
-              position: 'relative', overflow: 'hidden'
-            }}>
+            <Card sx={{ borderRadius: 3, bgcolor: 'text.primary', color: 'background.paper', position: 'relative', overflow: 'hidden' }}>
               <CardContent sx={{ p: 4, zIndex: 1, position: 'relative' }}>
-                <Typography variant="overline" sx={{ opacity: 0.5, fontWeight: 900, letterSpacing: 1.5 }}>
-                  Quick Actions
-                </Typography>
-                <Typography variant="h4" sx={{ fontWeight: 900, mt: 1, mb: 0.5, letterSpacing: -1 }}>
-                  Ready to print?
-                </Typography>
-                <Typography variant="body2" sx={{ opacity: 0.6, mb: 3 }}>
-                  Upload and release at any kiosk.
-                </Typography>
-                <Button 
-                  variant="contained" 
-                  fullWidth 
-                  href="/dashboard/upload" 
-                  sx={{ 
-                    bgcolor: 'background.paper', color: 'text.primary', 
-                    fontWeight: 800, textTransform: 'none',
-                    '&:hover': { bgcolor: '#eee' } 
-                  }}
-                >
+                <Typography variant="overline" sx={{ opacity: 0.5, fontWeight: 900, letterSpacing: 1.5 }}>Quick Actions</Typography>
+                <Typography variant="h4" sx={{ fontWeight: 900, mt: 1, mb: 0.5, letterSpacing: -1 }}>Ready to print?</Typography>
+                <Typography variant="body2" sx={{ opacity: 0.6, mb: 3 }}>Upload and release at any kiosk.</Typography>
+                <Button variant="contained" fullWidth href="/dashboard/upload" sx={{ bgcolor: 'background.paper', color: 'text.primary', fontWeight: 800, textTransform: 'none', '&:hover': { bgcolor: '#eee' } }}>
                   Upload Now
                 </Button>
               </CardContent>
