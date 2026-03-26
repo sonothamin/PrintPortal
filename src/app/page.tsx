@@ -293,7 +293,6 @@ export default function LandingPage() {
           <Typography variant="caption" color="text.secondary" align="center" sx={{ display: 'block', opacity: 0.5 }}>
             © 2026 PrintPortal - Sonoth Amin  • 
             <Link
-                                    component="button"
                                     variant="body2"
                                     sx={{ fontWeight: 700, cursor: 'pointer' }}
                                     href="/legals"
