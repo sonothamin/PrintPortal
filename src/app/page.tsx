@@ -17,7 +17,8 @@ import {
   Menu,
   MenuItem,
   ListItemIcon,
-  ListItemText
+  ListItemText,
+  buttonBaseClasses
 } from '@mui/material';
 import {
   Printer,
@@ -297,15 +298,15 @@ export default function LandingPage() {
             sx={{ display: 'block', opacity: 0.5 }}
           >
             © 2026 PrintPortal - Sonoth Amin • {' '}
-            <MuiLink
-              component={Link}
+            <Link
+              component="button"
+              variant="body2"
+              sx={{ fontWeight: 600, cursor: 'pointer' }}
               href="/legal"
               underline="hover"
-              color="inherit"
-              sx={{ fontWeight: 500 }}
             >
               Legal
-            </MuiLink>
+            </Link>
           </Typography>
         </Container>
       </Box>
