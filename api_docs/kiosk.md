@@ -38,9 +38,10 @@ Kiosk functions require a valid Supabase JWT with the `kiosk` (or `admin`) role.
   - Find by Code: `{ "release_code": "6_char_string" }`
 - **Response**: 
   ```json
-  { 
-    "success": true, 
-    "new_balance": "number", 
-    "file_url": "signed_storage_url" 
+  {
+  "success": true,
+  "new_balance": "rpcResult.new_balance",
+  "file_url": "fileData.signedUrl",
+  "job_id": "finalJobId"
   }
   ```

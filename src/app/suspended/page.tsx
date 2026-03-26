@@ -83,8 +83,7 @@ export default function SuspendedPage() {
           </Typography>
 
           <Typography variant="h6" color="text.secondary" sx={{ mb: 6, fontWeight: 500, maxWidth: '600px', mx: 'auto', lineHeight: 1.5 }}>
-            Access to the PrintPortal platform has been revoked by administration.
-            Please contact the administration desk for resolution.
+           Your access to all services of this site has been revoked.
           </Typography>
 
           <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 3, justifyContent: 'center', mb: 4 }}>
@@ -121,11 +120,11 @@ export default function SuspendedPage() {
 
       {/* Footer Branding */}
       <Box sx={{ mt: 'auto', pb: 4, opacity: 0.5, textAlign: 'center' }}>
-        <Typography variant="caption" sx={{ fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', display: 'block', mb: 1 }}>
-          Contact administration to appeal or resolve this status
+        <Typography variant="caption" sx={{ fontWeight: 800, letterSpacing: '0.3em', display: 'block', mb: 1 }}>
+          If you believe this is a mistake, please contact support at sonothamin@mailto.com.
         </Typography>
         <Typography variant="caption" sx={{ fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', opacity: 0.6 }}>
-          PrintPortal Security System V2
+          © 2026 PrintPortal - Sonoth Amin
         </Typography>
       </Box>
     </Box>
