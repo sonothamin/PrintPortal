@@ -51,7 +51,7 @@ export default function WalletPage() {
     ]);
 
     if (profileRes.data) setBalance(profileRes.data.wallet_balance);
-    if (txRes.data) setTransactions(txRes.data);
+    if (txRes.data) setTransactions(txRes.data || []);
 
     if (spentRes.data) {
       const total = spentRes.data.reduce((acc, curr) => acc + Math.abs(Number(curr.amount)), 0);
@@ -120,7 +120,7 @@ export default function WalletPage() {
 
   return (
     <DashboardLayout>
-      {/* Header */}
+      {/* Header Section */}
       <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Box>
           <Typography variant="h4" sx={{ fontWeight: 900, letterSpacing: -1.5 }}>Wallet</Typography>
@@ -131,14 +131,13 @@ export default function WalletPage() {
         </IconButton>
       </Box>
 
-      {/* Main Grid: Asymmetric 4/8 Layout */}
+      {/* Main Grid - Note: 'item' removed, 'size' prop added */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         
-        {/* Balance Card - Compact (4 columns on desktop) */}
-        <Grid item xs={12} md={4}>
+        {/* Balance Card - Compact (33% width) */}
+        <Grid size={{ xs: 12, md: 4 }}>
           <Card sx={{
             height: '100%', borderRadius: 4, bgcolor: 'text.primary', color: 'background.paper',
-            boxShadow: '0 10px 30px -5px rgba(0,0,0,0.15)', display: 'flex', flexDirection: 'column',
             position: 'relative', overflow: 'hidden'
           }}>
             <CardContent sx={{ p: 4, flexGrow: 1, zIndex: 1 }}>
@@ -148,14 +147,12 @@ export default function WalletPage() {
               <Typography variant="h2" sx={{ fontWeight: 900, mt: 1, mb: 0.5, letterSpacing: -2 }}>
                 ৳{balance.toFixed(2)}
               </Typography>
-              <Typography variant="caption" sx={{ opacity: 0.6, display: 'block' }}>
-                Valid for all printing services
-              </Typography>
+              <Typography variant="caption" sx={{ opacity: 0.6 }}>Valid for all services</Typography>
             </CardContent>
 
             <Divider sx={{ borderColor: 'rgba(255,255,255,0.1)' }} />
 
-            <Box sx={{ px: 4, py: 2, bgcolor: 'rgba(255,255,255,0.03)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box sx={{ px: 4, py: 2, bgcolor: 'rgba(255,255,255,0.03)', display: 'flex', justifyContent: 'space-between' }}>
               <Typography variant="caption" sx={{ opacity: 0.5, fontWeight: 700 }}>Total Spent</Typography>
               <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>৳{totalSpent.toFixed(2)}</Typography>
             </Box>
@@ -163,35 +160,30 @@ export default function WalletPage() {
           </Card>
         </Grid>
 
-        {/* Recharge Card - Wide (8 columns on desktop) */}
-        <Grid item xs={12} md={8}>
+        {/* Recharge Card - Functional (66% width) */}
+        <Grid size={{ xs: 12, md: 8 }}>
           <Card variant="outlined" sx={{ height: '100%', borderRadius: 4, bgcolor: 'background.paper' }}>
             <CardContent sx={{ p: 4 }}>
               <Typography variant="h6" sx={{ fontWeight: 800, mb: 1 }}>Top Up Account</Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                Redeem a voucher code or scan a QR to instantly add credits.
+                Redeem a voucher code or scan a QR code.
               </Typography>
 
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={8}>
+              <Grid container spacing={2} alignItems="flex-start">
+                <Grid size={{ xs: 12, sm: 8 }}>
                   <TextField
                     fullWidth
-                    placeholder="VOUCHER-CODE-HERE"
+                    placeholder="VOUCHER-CODE"
                     value={rechargeAmount}
                     onChange={(e) => setRechargeAmount(e.target.value.toUpperCase())}
-                    InputProps={{
-                      startAdornment: <InputAdornment position="start"><Zap size={18} /></InputAdornment>,
-                      sx: { borderRadius: 3, height: 56 }
-                    }}
+                    InputProps={{ sx: { borderRadius: 3, height: 56 } }}
                   />
                 </Grid>
-                <Grid item xs={12} sm={4}>
+                <Grid size={{ xs: 12, sm: 4 }}>
                   <Button
-                    fullWidth
-                    variant="outlined"
-                    onClick={() => setQrOpen(true)}
+                    fullWidth variant="outlined" onClick={() => setQrOpen(true)}
                     startIcon={<QrCode size={20} />}
-                    sx={{ borderRadius: 3, height: 56, fontWeight: 700, borderStyle: 'dashed' }}
+                    sx={{ borderRadius: 3, height: 56, fontWeight: 700 }}
                   >
                     Scan QR
                   </Button>
@@ -202,23 +194,18 @@ export default function WalletPage() {
                 fullWidth variant="contained" size="large"
                 disabled={!rechargeAmount || recharging}
                 onClick={() => handleRecharge()}
-                sx={{
-                  mt: 2, py: 1.8, bgcolor: 'text.primary', color: 'background.paper', fontWeight: 900, borderRadius: 3,
-                  boxShadow: '0 8px 20px -4px rgba(0,0,0,0.2)',
-                  '&:hover': { bgcolor: alpha(theme.palette.text.primary, 0.8) }
-                }}
+                sx={{ mt: 2, py: 1.8, bgcolor: 'text.primary', color: 'background.paper', fontWeight: 900, borderRadius: 3 }}
               >
                 {recharging ? <CircularProgress size={24} color="inherit" /> : 'Confirm Redemption'}
               </Button>
 
               {statusMsg.text && (
-                <Fade in>
+                <Fade in={true}>
                   <Box sx={{
                     mt: 2, p: 1.5, borderRadius: 2, display: 'flex', alignItems: 'center', gap: 1.5,
                     bgcolor: statusMsg.type === 'success' ? alpha(theme.palette.success.main, 0.1) : alpha(theme.palette.error.main, 0.1),
                     color: statusMsg.type === 'success' ? 'success.main' : 'error.main',
-                    border: '1px solid',
-                    borderColor: 'currentColor'
+                    border: '1px solid', borderColor: 'currentColor'
                   }}>
                     {statusMsg.type === 'success' ? <CheckCircle2 size={18} /> : <X size={18} />}
                     <Typography variant="body2" sx={{ fontWeight: 700 }}>{statusMsg.text}</Typography>
@@ -230,7 +217,7 @@ export default function WalletPage() {
         </Grid>
       </Grid>
 
-      {/* Full-Width History Section */}
+      {/* Transaction History Section */}
       <Card variant="outlined" sx={{ borderRadius: 4, overflow: 'hidden' }}>
         <Box sx={{ px: 3, py: 2.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 900 }}>Transaction History</Typography>
