@@ -234,7 +234,7 @@ function GlobalQueueContent() {
       </TableContainer>
 
       {/* QR Modal */}
-      <Dialog open={qrModalOpen} onClose={() => setQrModalOpen(false)} PaperProps={{ sx: { borderRadius: 5, p: 1 } }}>
+      <Dialog open={qrModalOpen} onClose={() => setQrModalOpen(false)} PaperProps={{ sx: { borderRadius: 2, p: 1 } }}>
         <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}><IconButton onClick={() => setQrModalOpen(false)}><X size={20} /></IconButton></Box>
         <DialogContent sx={{ textAlign: 'center', pt: 0 }}>
           <Box sx={{ p: 3, bgcolor: '#fff', borderRadius: 2, display: 'inline-block', border: '1px solid', borderColor: 'divider' }}>
