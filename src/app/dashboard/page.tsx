@@ -1,208 +1,149 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { supabase } from '@/lib/supabase';
 import {
-  Grid,
-  Typography,
-  Card,
-  CardContent,
-  Box,
-  Button,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Chip,
-  alpha,
-  IconButton,
-  Dialog,
-  DialogContent,
-  DialogTitle
+  Grid, Typography, Card, CardContent, Box, Button, Table,
+  TableBody, TableCell, TableContainer, TableHead, TableRow,
+  alpha, IconButton, Dialog, DialogContent, DialogTitle, 
+  Stack, LinearProgress, Tooltip
 } from '@mui/material';
 import {
-  UploadCloud,
-  ExternalLink,
-  Wallet,
-  Zap,
-  Printer,
-  QrCode,
-  X
+  UploadCloud, ExternalLink, Wallet, Zap, Printer, 
+  QrCode, X, Clock, CheckCircle2, XCircle, Undo2, Loader2
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
+
+// --- Configuration ---
+const STATUS_CONFIG = {
+  processing: { label: 'Processing', color: '#0288d1', icon: <Loader2 size={14} className="animate-spin" /> },
+  pending: { label: 'Pending', color: '#ed6c02', icon: <Clock size={14} /> },
+  canceled: { label: 'Canceled', color: '#d32f2f', icon: <XCircle size={14} /> },
+  refunded: { label: 'Refunded', color: '#9c27b0', icon: <Undo2 size={14} /> },
+  completed: { label: 'Completed', color: '#2e7d32', icon: <CheckCircle2 size={14} /> },
+};
 
 interface PrintJob {
   id: string;
   file_name: string;
   created_at: string;
-  status: 'pending' | 'processing' | 'completed' | 'canceled';
+  status: keyof typeof STATUS_CONFIG;
   release_code: string;
   cost: number;
 }
 
-interface UserProfile {
-  full_name: string;
-  wallet_balance: number;
-}
-
-interface Kiosk {
-  name: string;
-  status: 'online' | 'offline' | 'error';
-}
-
 export default function DashboardPage() {
   const [jobs, setJobs] = useState<PrintJob[]>([]);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [kiosks, setKiosks] = useState<Kiosk[]>([]);
+  const [profile, setProfile] = useState<any>(null);
+  const [kiosks, setKiosks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [qrJob, setQrJob] = useState<PrintJob | null>(null);
 
-  const fetchData = React.useCallback(async () => {
+  const fetchData = useCallback(async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
 
     const [jobsRes, profileRes, kiosksRes] = await Promise.all([
-      supabase
-        .from('print_jobs')
-        .select('*')
-        .eq('user_id', session.user.id)
-        .order('created_at', { ascending: false })
-        .limit(5),
-      supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', session.user.id)
-        .single(),
-      supabase
-        .from('kiosks')
-        .select('name, status')
-        .limit(5)
+      supabase.from('print_jobs').select('*').eq('user_id', session.user.id).order('created_at', { ascending: false }).limit(5),
+      supabase.from('profiles').select('*').eq('id', session.user.id).single(),
+      supabase.from('kiosks').select('name, status').limit(4)
     ]);
 
-    if (jobsRes.data) setJobs(jobsRes.data);
+    if (jobsRes.data) setJobs(jobsRes.data as PrintJob[]);
     if (profileRes.data) setProfile(profileRes.data);
-    if (kiosksRes.data) setKiosks(kiosksRes.data as Kiosk[]);
+    if (kiosksRes.data) setKiosks(kiosksRes.data);
     setLoading(false);
   }, []);
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  useEffect(() => { fetchData(); }, [fetchData]);
 
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Good Morning';
-    if (hour < 17) return 'Good Afternoon';
-    return 'Good Evening';
+  const StatusBadge = ({ status }: { status: keyof typeof STATUS_CONFIG }) => {
+    const config = STATUS_CONFIG[status] || STATUS_CONFIG.pending;
+    return (
+      <Box sx={{
+        display: 'inline-flex', alignItems: 'center', gap: 0.5, px: 1, py: 0.3,
+        borderRadius: 1.5, fontSize: '0.65rem', fontWeight: 900, textTransform: 'uppercase',
+        color: config.color, bgcolor: alpha(config.color, 0.1), border: `1px solid ${alpha(config.color, 0.2)}`
+      }}>
+        {config.icon} {config.label}
+      </Box>
+    );
   };
 
   if (loading) return (
     <DashboardLayout>
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
-        <Typography color="text.secondary">Loading your dashboard...</Typography>
-      </Box>
+      <Box sx={{ width: '100%', mt: 4 }}><LinearProgress /></Box>
     </DashboardLayout>
   );
 
   return (
     <DashboardLayout>
-      <Box sx={{ mb: 6, display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'flex-end' }, gap: 3 }}>
+      {/* Header Section */}
+      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
         <Box>
-          <Typography variant="h4" sx={{ fontWeight: 900, mb: 1, letterSpacing: -1.5 }}>
-            {getGreeting()}, {profile?.full_name?.split(' ')[0] || 'My Good Sire!'}!
+          <Typography variant="h4" sx={{ fontWeight: 900, letterSpacing: -1 }}>
+            Hey, {profile?.full_name?.split(' ')[0] || 'User'}!
           </Typography>
-          <Typography color="text.secondary" variant="body2" sx={{ fontWeight: 500 }}>
-            {(profile?.wallet_balance ?? 0) < 5
-              ? "Your balance is low. Top up to keep printing!"
-              : "Ready to turn those digital files into paper?"}
+          <Typography color="text.secondary" variant="body2">
+            {(profile?.wallet_balance ?? 0) < 5 ? "Low balance alert! Top up soon." : "Your printing station is ready."}
           </Typography>
         </Box>
-        <Card variant="outlined" sx={{ borderRadius: 2, px: 3, py: 1.5, display: 'flex', alignItems: 'center', gap: 2, bgcolor: (theme) => alpha(theme.palette.success.main, 0.05), borderColor: 'success.main', borderStyle: 'dashed' }}>
-          <Box sx={{ bgcolor: 'success.main', p: 0.8, borderRadius: 1.5, color: 'white', display: 'flex' }}>
-            <Wallet size={18} />
-          </Box>
+
+        <Card variant="outlined" sx={{ 
+          borderRadius: 3, px: 3, py: 1.5, display: 'flex', alignItems: 'center', gap: 2, 
+          bgcolor: 'success.main', color: 'white', border: 'none', boxShadow: (theme) => `0 10px 20px ${alpha(theme.palette.success.main, 0.2)}`
+        }}>
+          <Wallet size={20} />
           <Box>
-            <Typography variant="caption" sx={{ fontWeight: 800, color: 'success.main', display: 'block', lineHeight: 1 }}>BALANCE</Typography>
-            <Typography variant="h6" sx={{ fontWeight: 900, lineHeight: 1.2 }}>৳{profile?.wallet_balance?.toFixed(2) || '0.00'}</Typography>
+            <Typography variant="caption" sx={{ fontWeight: 700, opacity: 0.8, display: 'block', lineHeight: 1 }}>BALANCE</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 900, lineHeight: 1 }}>৳{profile?.wallet_balance?.toFixed(2)}</Typography>
           </Box>
         </Card>
       </Box>
 
-      <Grid container spacing={4}>
+      <Grid container spacing={3}>
+        {/* Left: Recent Activity */}
         <Grid size={{ xs: 12, md: 8 }}>
-          <Card variant="outlined" sx={{ borderRadius: 2, mb: 4, border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}>
-            <CardContent sx={{ p: 4 }}>
+          <Card variant="outlined" sx={{ borderRadius: 3, height: '100%' }}>
+            <CardContent sx={{ p: 3 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                <Typography variant="h6" sx={{ fontWeight: 900 }}>
-                  Recent Print Jobs
-                </Typography>
-                <Button
-                  variant="text"
-                  size="small"
-                  endIcon={<ExternalLink size={16} />}
-                  sx={{ fontWeight: 800 }}
-                  onClick={() => window.location.href = '/dashboard/history'}
-                >
-                  Detailed History
-                </Button>
+                <Typography variant="h6" sx={{ fontWeight: 800 }}>Recent Activity</Typography>
+                <Button size="small" endIcon={<ExternalLink size={14} />} onClick={() => window.location.href = '/dashboard/history'}>Full History</Button>
               </Box>
 
               <TableContainer>
-                <Table size="medium">
+                <Table>
                   <TableHead>
                     <TableRow>
-                      <TableCell sx={{ fontWeight: 800, color: 'text.secondary', fontSize: '0.75rem' }}>DOCUMENT</TableCell>
-                      <TableCell sx={{ fontWeight: 800, color: 'text.secondary', fontSize: '0.75rem' }}>DATE</TableCell>
-                      <TableCell sx={{ fontWeight: 800, color: 'text.secondary', fontSize: '0.75rem' }}>STATUS</TableCell>
-                      <TableCell sx={{ fontWeight: 800, color: 'text.secondary', fontSize: '0.75rem' }}>CODE</TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 800, color: 'text.secondary', fontSize: '0.75rem' }}>COST</TableCell>
+                      <TableCell sx={{ fontWeight: 700, color: 'text.secondary', fontSize: '0.7rem' }}>FILE</TableCell>
+                      <TableCell sx={{ fontWeight: 700, color: 'text.secondary', fontSize: '0.7rem' }}>STATUS</TableCell>
+                      <TableCell sx={{ fontWeight: 700, color: 'text.secondary', fontSize: '0.7rem' }}>CODE</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 700, color: 'text.secondary', fontSize: '0.7rem' }}>COST</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {jobs.length > 0 ? jobs.map((job) => (
-                      <TableRow key={job.id} hover sx={{ '&:last-child td': { border: 0 } }}>
-                        <TableCell sx={{ fontWeight: 700 }}>{job.file_name}</TableCell>
-                        <TableCell sx={{ color: 'text.secondary', fontSize: '0.85rem' }}>{new Date(job.created_at).toLocaleDateString()}</TableCell>
-                        <TableCell>
-                          <Chip
-                            size="small"
-                            label={job.status}
-                            color={job.status === 'completed' ? 'success' : 'warning'}
-                            variant="filled"
-                            sx={{ fontWeight: 900, textTransform: 'uppercase', fontSize: '0.65rem', borderRadius: 1.5 }}
-                          />
+                    {jobs.map((job) => (
+                      <TableRow key={job.id} hover>
+                        <TableCell sx={{ fontWeight: 600, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {job.file_name}
                         </TableCell>
+                        <TableCell><StatusBadge status={job.status} /></TableCell>
                         <TableCell>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Typography variant="body2" sx={{ fontFamily: 'monospace', fontWeight: 900, color: 'primary.main', bgcolor: (theme) => alpha(theme.palette.primary.main, 0.05), px: 1, py: 0.5, borderRadius: 1, display: 'inline-block' }}>
+                            <Typography variant="body2" sx={{ fontFamily: 'monospace', fontWeight: 800, color: 'primary.main', bgcolor: alpha('#1976d2', 0.05), px: 1, borderRadius: 1 }}>
                               {job.release_code || '---'}
                             </Typography>
                             {job.release_code && (
-                              <IconButton
-                                size="small"
-                                onClick={() => setQrJob(job)}
-                                sx={{
-                                  color: 'primary.main',
-                                  '&:hover': { bgcolor: (theme) => alpha(theme.palette.primary.main, 0.1) }
-                                }}
-                              >
+                              <IconButton size="small" onClick={() => setQrJob(job)} sx={{ color: 'primary.main' }}>
                                 <QrCode size={16} />
                               </IconButton>
                             )}
                           </Box>
                         </TableCell>
-                        <TableCell align="right" sx={{ fontWeight: 900 }}>৳{job.cost.toFixed(2)}</TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 800 }}>৳{job.cost.toFixed(2)}</TableCell>
                       </TableRow>
-                    )) : (
-                      <TableRow>
-                        <TableCell colSpan={5} align="center" sx={{ py: 6 }}>
-                          <Typography color="text.secondary" variant="body2">No recent print activity detected.</Typography>
-                        </TableCell>
-                      </TableRow>
-                    )}
+                    ))}
                   </TableBody>
                 </Table>
               </TableContainer>
@@ -210,154 +151,67 @@ export default function DashboardPage() {
           </Card>
         </Grid>
 
+        {/* Right: Actions & Map */}
         <Grid size={{ xs: 12, md: 4 }}>
-          <Card
-            sx={{
-              height: '48%',
-              borderRadius: 4,
-              bgcolor: 'text.primary', // This creates the high-contrast black/white look
-              color: 'background.paper',
-              mb: 4,
-              position: 'relative',
-              overflow: 'hidden',
-              boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)'
-            }}
-          >
-            {/* Large Background Icon */}
-            <Box sx={{ position: 'absolute', right: -20, bottom: -20, opacity: 0.05, transform: 'rotate(-15deg)' }}>
-              <Printer size={160} />
-            </Box>
-
-            <CardContent sx={{ p: 4, position: 'relative', zIndex: 1 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-                <Box sx={{ bgcolor: 'rgba(255,255,255,0.1)', p: 1, borderRadius: 2, display: 'flex' }}>
-                  <UploadCloud size={24} />
-                </Box>
-                <Typography variant="h6" sx={{ fontWeight: 900 }}>
-                  Ready to print?
-                </Typography>
+          <Stack spacing={3} sx={{ height: '100%' }}>
+            {/* Quick Upload Action */}
+            <Card sx={{ 
+              borderRadius: 3, bgcolor: 'text.primary', color: 'background.paper',
+              position: 'relative', overflow: 'hidden', flex: 1, display: 'flex', alignItems: 'center'
+            }}>
+              <Box sx={{ position: 'absolute', right: -10, bottom: -10, opacity: 0.1, transform: 'rotate(-15deg)' }}>
+                <Printer size={120} />
               </Box>
+              <CardContent sx={{ p: 3, width: '100%', position: 'relative', zIndex: 1 }}>
+                <Typography variant="h6" sx={{ fontWeight: 900, mb: 1 }}>New Print Job</Typography>
+                <Typography variant="body2" sx={{ opacity: 0.7, mb: 3 }}>Upload PDF and release at any kiosk instantly.</Typography>
+                <Button 
+                  fullWidth variant="contained" 
+                  onClick={() => window.location.href='/dashboard/upload'}
+                  sx={{ bgcolor: 'background.paper', color: 'text.primary', fontWeight: 800, borderRadius: 2, '&:hover': { bgcolor: alpha('#fff', 0.9) } }}
+                >
+                  Upload Now
+                </Button>
+              </CardContent>
+            </Card>
 
-              <Typography sx={{ mb: 4, opacity: 0.6, fontSize: '0.9rem', lineHeight: 1.6, fontWeight: 500 }}>
-                Upload your files now and pick them up at any available kiosk location instantly.
-              </Typography>
-
-              <Button
-                fullWidth
-                variant="contained"
-                size="large"
-                sx={{
-                  bgcolor: 'background.paper', // Button color is the "inverse" of the card
-                  color: 'text.primary',
-                  fontWeight: 900,
-                  borderRadius: 3,
-                  py: 1.8,
-                  '&:hover': {
-                    bgcolor: (theme) => alpha(theme.palette.background.paper, 0.9),
-                    transform: 'translateY(-2px)'
-                  },
-                  transition: 'all 0.2s'
-                }}
-                onClick={() => window.location.href = '/dashboard/upload'}
-              >
-                Upload Document
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card variant="outlined" sx={{ borderRadius: 2 }}>
-            <CardContent sx={{ p: 4 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-                <Box sx={{ bgcolor: (theme) => alpha(theme.palette.primary.main, 0.1), color: 'primary.main', p: 1, borderRadius: 2, display: 'flex' }}>
-                  <Zap size={20} />
+            {/* Kiosk Status */}
+            <Card variant="outlined" sx={{ borderRadius: 3 }}>
+              <CardContent sx={{ p: 3 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                  <Zap size={18} color="#ed6c02" />
+                  <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>Nearby Kiosks</Typography>
                 </Box>
-                <Typography variant="subtitle1" sx={{ fontWeight: 900 }}>
-                  Live Kiosk Map
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-                {kiosks.length > 0 ? kiosks.map((kiosk, idx) => (
-                  <Box key={idx} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                      <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: kiosk.status === 'online' ? 'success.main' : 'error.main', boxShadow: (theme) => `0 0 8px ${kiosk.status === 'online' ? theme.palette.success.main : theme.palette.error.main}` }} />
-                      <Typography variant="body2" sx={{ fontWeight: 700 }}>{kiosk.name}</Typography>
+                <Stack spacing={2}>
+                  {kiosks.map((k, i) => (
+                    <Box key={i} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>{k.name}</Typography>
+                      <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: k.status === 'online' ? 'success.main' : 'error.main', boxShadow: (theme) => `0 0 8px ${k.status === 'online' ? theme.palette.success.main : theme.palette.error.main}` }} />
                     </Box>
-                    <Chip
-                      label={kiosk.status}
-                      size="small"
-                      color={kiosk.status === 'online' ? 'success' : 'error'}
-                      variant="outlined"
-                      sx={{ fontWeight: 900, fontSize: '0.6rem', height: 20, textTransform: 'uppercase' }}
-                    />
-                  </Box>
-                )) : (
-                  <Typography variant="caption" color="text.secondary">No kiosks registered in the system.</Typography>
-                )}
-              </Box>
-              <Button fullWidth sx={{ mt: 3, fontWeight: 800, color: 'text.secondary', fontSize: '0.75rem' }}>View Service Map</Button>
-            </CardContent>
-          </Card>
+                  ))}
+                </Stack>
+              </CardContent>
+            </Card>
+          </Stack>
         </Grid>
       </Grid>
 
       {/* QR Code Dialog */}
-      <Dialog
-        open={!!qrJob}
-        onClose={() => setQrJob(null)}
-        PaperProps={{
-          sx: {
-            borderRadius: 2,
-            p: 1,
-            maxWidth: 360,
-            textAlign: 'center'
-          }
-        }}
-      >
-        <DialogTitle sx={{ fontWeight: 900, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          Release Code QR
-          <IconButton size="small" onClick={() => setQrJob(null)}>
-            <X size={18} />
-          </IconButton>
+      <Dialog open={!!qrJob} onClose={() => setQrJob(null)} PaperProps={{ sx: { borderRadius: 4, p: 2, maxWidth: 350 } }}>
+        <DialogTitle sx={{ fontWeight: 900, px: 2, display: 'flex', justifyContent: 'space-between' }}>
+          Scan to Print
+          <IconButton size="small" onClick={() => setQrJob(null)}><X size={18} /></IconButton>
         </DialogTitle>
-        <DialogContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, pb: 4 }}>
+        <DialogContent sx={{ textAlign: 'center', pb: 4 }}>
           {qrJob?.release_code && (
-            <Box sx={{
-              bgcolor: 'white',
-              p: 3,
-              borderRadius: 3,
-              border: '2px solid',
-              borderColor: 'divider',
-              display: 'inline-flex'
-            }}>
-              <QRCodeSVG
-                value={qrJob.release_code}
-                size={200}
-                level="H"
-                includeMargin={false}
-              />
+            <Box sx={{ bgcolor: 'white', p: 2, borderRadius: 2, border: '1px solid', borderColor: 'divider', display: 'inline-block', mb: 2 }}>
+              <QRCodeSVG value={qrJob.release_code} size={180} />
             </Box>
           )}
-          <Box>
-            <Typography variant="h5" sx={{ fontFamily: 'monospace', fontWeight: 900, color: 'primary.main', letterSpacing: 3 }}>
-              {qrJob?.release_code}
-            </Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-              Scan this QR code at any PrintPortal kiosk to release your print job.
-            </Typography>
-          </Box>
-          <Box sx={{
-            bgcolor: (theme) => alpha(theme.palette.info.main, 0.08),
-            borderRadius: 2,
-            p: 2,
-            width: '100%'
-          }}>
-            <Typography variant="caption" sx={{ fontWeight: 700, color: 'info.main' }}>
-              {qrJob?.file_name}
-            </Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-              Cost: ৳{qrJob?.cost.toFixed(2)}
-            </Typography>
-          </Box>
+          <Typography variant="h4" sx={{ fontFamily: 'monospace', fontWeight: 900, color: 'primary.main', letterSpacing: 4, mb: 1 }}>
+            {qrJob?.release_code}
+          </Typography>
+          <Typography variant="caption" color="text.secondary">Scan at kiosk to release your file</Typography>
         </DialogContent>
       </Dialog>
     </DashboardLayout>

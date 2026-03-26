@@ -40,11 +40,9 @@ export default function UploadPage() {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
     
-    // Fetch current pricing settings
     const { data: setRes } = await supabase.from('settings').select('value').eq('key', 'print_pricing').single();
     if (setRes) setPricing(setRes.value);
     
-    // Fetch wallet balance for user reference
     const { data: profile } = await supabase.from('profiles').select('wallet_balance').eq('id', session.user.id).single();
     if (profile) setBalance(profile.wallet_balance);
   };
@@ -80,17 +78,17 @@ export default function UploadPage() {
         pages: Number(verifyData.page_count) || 0,
         cost: Number(verifyData.cost) || 0
       });
-      setStatus({ text: 'File analyzed. You can now add it to the queue.', type: 'success' });
+      setStatus({ text: 'File ready for the queue.', type: 'success' });
     } catch (err: any) {
       setStatus({ text: err.message, type: 'error' });
     } finally {
       setAnalyzing(false);
-      e.target.value = ''; // Clear input for re-selection
+      e.target.value = ''; 
     }
   };
 
   const handleGeneratePrintJob = async () => {
-    if (!activeFile) return;
+    if (!activeFile || copies < 1) return;
 
     setUploading(true);
     try {
@@ -99,14 +97,15 @@ export default function UploadPage() {
           file_path: activeFile.path,
           file_name: activeFile.name,
           is_color: isColor,
-          copies: copies
+          copies: Math.max(1, Math.floor(copies))
         }
       });
 
       if (error || !data.success) throw new Error(error?.message || 'Failed to add to queue');
       
-      setStatus({ text: 'Success! Document added to your print queue.', type: 'success' });
+      setStatus({ text: 'Success! Document added to print queue.', type: 'success' });
       setActiveFile(null);
+      setCopies(1);
       fetchData();
     } catch (err: any) {
       setStatus({ text: err.message, type: 'error' });
@@ -123,17 +122,14 @@ export default function UploadPage() {
     <DashboardLayout>
       <Box sx={{ mb: 4 }}>
         <Typography variant="h4" sx={{ fontWeight: 800, mb: 1 }}>Upload Document</Typography>
-        <Typography color="text.secondary">Select a PDF to prepare it for printing.</Typography>
+        <Typography color="text.secondary">Prepare your PDF for the printing queue.</Typography>
       </Box>
 
       {status.text && (
-        <Alert severity={status.type} sx={{ mb: 4, borderRadius: 2 }}>
-          {status.text}
-        </Alert>
+        <Alert severity={status.type} sx={{ mb: 4, borderRadius: 2 }}>{status.text}</Alert>
       )}
 
       <Grid container spacing={4}>
-        {/* Document Selection Column */}
         <Grid size={{ xs: 12, md: 7 }}>
           {!activeFile && !analyzing ? (
             <Box 
@@ -149,31 +145,21 @@ export default function UploadPage() {
               <input type="file" hidden accept=".pdf" onChange={handleFileChange} />
               <UploadCloud size={48} style={{ marginBottom: 16, color: '#999' }} />
               <Typography variant="h6" sx={{ fontWeight: 800 }}>Click to select PDF</Typography>
-              <Typography variant="body2" color="text.secondary">Maximum file size: 50MB</Typography>
+              <Typography variant="body2" color="text.secondary">Files are processed securely</Typography>
             </Box>
           ) : (
             <Card variant="outlined" sx={{ borderRadius: 2 }}>
               <CardContent sx={{ p: 3 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Box sx={{ 
-                    p: 2, borderRadius: 2, 
-                    bgcolor: (theme) => alpha(theme.palette.primary.main, 0.1), 
-                    color: 'primary.main', display: 'flex'
-                  }}>
+                  <Box sx={{ p: 2, borderRadius: 2, bgcolor: (theme) => alpha(theme.palette.primary.main, 0.1), color: 'primary.main', display: 'flex' }}>
                     {analyzing ? <CircularProgress size={24} color="inherit" /> : <FileText size={24} />}
                   </Box>
                   <Box sx={{ flex: 1 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-                      {analyzing ? 'Processing PDF...' : activeFile?.name}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {analyzing ? 'Checking page counts...' : `${activeFile?.size} • ${activeFile?.pages} Pages`}
-                    </Typography>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>{analyzing ? 'Reading PDF...' : activeFile?.name}</Typography>
+                    <Typography variant="caption" color="text.secondary">{analyzing ? 'Processing...' : `${activeFile?.size} • ${activeFile?.pages} Pages`}</Typography>
                   </Box>
                   {!uploading && !analyzing && (
-                    <IconButton onClick={() => setActiveFile(null)} size="small">
-                      <X size={18} />
-                    </IconButton>
+                    <IconButton onClick={() => setActiveFile(null)} size="small"><X size={18} /></IconButton>
                   )}
                 </Box>
                 {analyzing && <LinearProgress sx={{ mt: 3, borderRadius: 1 }} />}
@@ -182,11 +168,10 @@ export default function UploadPage() {
           )}
 
           <Alert icon={<Info size={20} />} severity="info" sx={{ mt: 3, borderRadius: 2 }}>
-            <strong> Payment is only deducted from your wallet when you print the job at a kiosk.</strong>
+          <strong>Payment is deducted only at the time of printing.</strong>
           </Alert>
         </Grid>
 
-        {/* Configuration Column */}
         <Grid size={{ xs: 12, md: 5 }}>
           <Card variant="outlined" sx={{ borderRadius: 2 }}>
             <CardContent sx={{ p: 4 }}>
@@ -195,12 +180,14 @@ export default function UploadPage() {
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                 <Box sx={{ display: 'flex', gap: 2 }}>
                   <TextField 
-                    select fullWidth label="Copies" value={copies} 
-                    onChange={(e) => setCopies(Number(e.target.value))}
+                    fullWidth 
+                    label="Copies" 
+                    type="number"
+                    value={copies}
+                    InputProps={{ inputProps: { min: 1 } }}
+                    onChange={(e) => setCopies(Math.max(1, parseInt(e.target.value) || 0))}
                     sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-                  >
-                    {[1, 2, 3, 5, 10].map(v => <MenuItem key={v} value={v}>{v}</MenuItem>)}
-                  </TextField>
+                  />
                   <TextField 
                     select fullWidth label="Mode" value={isColor ? 'color' : 'bw'} 
                     onChange={(e) => setIsColor(e.target.value === 'color')}
@@ -217,7 +204,7 @@ export default function UploadPage() {
                     <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>৳{currentTotalCost.toFixed(2)}</Typography>
                   </Box>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <Typography variant="body2" color="text.secondary">Wallet Balance</Typography>
+                    <Typography variant="body2" color="text.secondary">Your Balance</Typography>
                     <Typography variant="body2" sx={{ fontWeight: 600 }}>৳{balance.toFixed(2)}</Typography>
                   </Box>
                 </Box>
@@ -226,21 +213,14 @@ export default function UploadPage() {
                   fullWidth variant="contained" size="large" 
                   disabled={!activeFile || uploading || analyzing}
                   onClick={handleGeneratePrintJob}
-                  sx={{ 
-                    bgcolor: 'text.primary', color: 'background.default', 
-                    py: 2, borderRadius: 2, fontWeight: 800,
-                    '&:hover': { bgcolor: 'grey.800' }
-                  }}
+                  sx={{ bgcolor: 'text.primary', color: 'background.default', py: 2, borderRadius: 2, fontWeight: 800, '&:hover': { bgcolor: 'grey.800' } }}
                   startIcon={uploading ? <CircularProgress size={20} color="inherit" /> : <Printer size={22} />}
                 >
                   {uploading ? 'Processing...' : 'Add to Print Queue'}
                 </Button>
                 
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'center', opacity: 0.5 }}>
-                  <ShieldCheck size={14} />
-                  <Typography variant="caption" sx={{ fontWeight: 700, letterSpacing: 0.5 }}>
-                    ENCRYPTED PDF PROCESSING
-                  </Typography>
+                  <ShieldCheck size={14} /><Typography variant="caption" sx={{ fontWeight: 700 }}>SECURE PROCESSING</Typography>
                 </Box>
               </Box>
             </CardContent>
