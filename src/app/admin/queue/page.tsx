@@ -1,197 +1,339 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import {
-  Box,
-  Typography,
+import React, { useEffect, useState, Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import AdminPortalLayout from '@/components/AdminPortalLayout';
+import { 
+  Typography, 
+  Box, 
+  Card, 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableContainer, 
+  TableHead, 
+  TableRow, 
+  Chip, 
+  IconButton, 
+  TextField, 
+  MenuItem, 
   Button,
-  Card,
-  CardContent,
-  Stack,
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogContentText,
   DialogActions,
-  Snackbar,
+  alpha,
+  useTheme,
   Alert,
-  Divider,
+  Tooltip,
   CircularProgress,
-} from "@mui/material";
-import { DeleteSweep, CloudOff, WarningAmber } from "@mui/icons-material";
+  Divider
+} from '@mui/material';
+import { 
+  Filter, 
+  Search, 
+  Eye, 
+  Download, 
+  Clock, 
+  CheckCircle2, 
+  XCircle,
+  AlertCircle,
+  Zap,
+  RefreshCw,
+  AlertTriangle,
+  Trash2,
+  FileText,
+  User,
+  Hash
+} from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
-// --- Types ---
-type ActionType = "queue" | "temp" | null;
+function GlobalQueueContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const userIdFilter = searchParams.get('user_id');
+  const theme = useTheme();
 
-interface ApiResponse {
-  success: boolean;
-  count?: number;
-  error?: string;
-}
-
-export default function StorageAdminPage() {
-  // UI State
-  const [loading, setLoading] = useState<ActionType>(null);
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const [pendingAction, setPendingAction] = useState<ActionType>(null);
+  const [jobs, setJobs] = useState<any[]>([]);
+  const [releasing, setReleasing] = useState<string | null>(null);
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [previewFile, setPreviewFile] = useState<string | null>(null);
   
-  // Feedback State
-  const [snackbar, setSnackbar] = useState<{
-    open: boolean;
-    message: string;
-    severity: "success" | "error";
-  }>({ open: false, message: "", severity: "success" });
+  // Modals & Loading
+  const [tempModalOpen, setTempModalOpen] = useState(false);
+  const [clearingTemp, setClearingTemp] = useState(false);
+  const [queueModalOpen, setQueueModalOpen] = useState(false);
+  const [clearingQueue, setClearingQueue] = useState(false);
+  
+  const [statusMsg, setStatusMsg] = useState<{ text: string, type: 'success' | 'error' | 'info' | 'warning' } | null>(null);
 
-  // --- Handlers ---
+  const fetchJobs = React.useCallback(async () => {
+    let query = supabase
+      .from('print_jobs')
+      .select('*, profiles(full_name)')
+      .order('created_at', { ascending: false });
 
-  const handleOpenConfirm = (action: ActionType) => {
-    setPendingAction(action);
-    setConfirmOpen(true);
-  };
+    if (filterStatus !== 'all') query = query.eq('status', filterStatus);
+    if (userIdFilter) query = query.eq('user_id', userIdFilter);
 
-  const handleCloseConfirm = () => {
-    setConfirmOpen(false);
-    setPendingAction(null);
-  };
+    const { data } = await query;
+    if (data) setJobs(data as any);
+  }, [filterStatus, userIdFilter]);
 
-  const showFeedback = (message: string, severity: "success" | "error") => {
-    setSnackbar({ open: true, message, severity });
-  };
+  useEffect(() => {
+    fetchJobs();
+  }, [fetchJobs]);
 
-  const executePurge = async () => {
-    if (!pendingAction) return;
-
-    const endpoint = pendingAction === "queue" ? "/api/clear-queue-uploads" : "/api/clear-temp-files";
-    setLoading(pendingAction);
-    handleCloseConfirm();
-
+  const handleRelease = async (jobId: string) => {
+    setReleasing(jobId);
+    setStatusMsg(null);
     try {
-      const response = await fetch(endpoint, { method: "POST" });
-      const data: ApiResponse = await response.json();
-
-      if (data.success) {
-        showFeedback(`Successfully purged ${data.count ?? 0} files.`, "success");
-      } else {
-        // Specifically capturing the error message from the JSON if it exists
-        const errorMsg = data.error || "Action failed to complete.";
-        showFeedback(errorMsg, "error");
+      const { data, error } = await supabase.functions.invoke('release-job', {
+        body: { job_id: jobId }
+      });
+      
+      if (error) throw new Error(error.message);
+      
+      if (!data.success) {
+        // Specific requirement: mapping "Insufficient balance" to "Release Failed"
+        if (data.error?.includes("Insufficient balance")) {
+            throw new Error("Release Failed: User does not have sufficient balance.");
+        }
+        throw new Error(data.error || 'Failed to release job.');
       }
-    } catch (err) {
-      showFeedback("Network error: Could not reach the server.", "error");
+      
+      setStatusMsg({ text: 'Job released successfully!', type: 'success' });
+      if (data.file_url) window.open(data.file_url, '_blank');
+      fetchJobs();
+    } catch (err: any) {
+      setStatusMsg({ text: err.message, type: 'error' });
     } finally {
-      setLoading(null);
+      setReleasing(null);
     }
   };
 
+  const handlePurge = async (funcName: 'clear-temp-files' | 'clear-queue-uploads') => {
+    const isTemp = funcName === 'clear-temp-files';
+    isTemp ? setClearingTemp(true) : setClearingQueue(true);
+    setStatusMsg(null);
+
+    try {
+      const { data, error } = await supabase.functions.invoke(funcName);
+      if (error) throw error;
+      setStatusMsg({ 
+        text: `Purge complete. ${data.count || 0} files removed.`, 
+        type: 'success' 
+      });
+    } catch (err: any) {
+      setStatusMsg({ text: err.message || 'Purge failed', type: 'error' });
+    } finally {
+      isTemp ? setClearingTemp(false) : setClearingQueue(false);
+      setTempModalOpen(false);
+      setQueueModalOpen(false);
+    }
+  };
+
+  const filteredJobs = jobs.filter(job => 
+    job.file_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    job.profiles?.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    job.release_code?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const statusMap: Record<string, { color: any, icon: any }> = {
+    pending: { color: 'warning', icon: <Clock size={14} /> },
+    processing: { color: 'info', icon: <RefreshCw size={14} /> },
+    completed: { color: 'success', icon: <CheckCircle2 size={14} /> },
+    canceled: { color: 'error', icon: <XCircle size={14} /> },
+  };
+
   return (
-    <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 800, mx: "auto" }}>
-      <Typography variant="h4" component="h1" sx={{ mb: 1, fontWeight: 700 }}>
-        Storage Management
-      </Typography>
-      <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-        Admin-only utilities to maintain storage health and purge legacy data.
-      </Typography>
-
-      <Stack spacing={3}>
-        {/* Clear Queue Card */}
-        <Card variant="outlined" sx={{ borderRadius: 3 }}>
-          <CardContent sx={{ p: 3 }}>
-            <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" alignItems="center" spacing={2}>
-              <Box>
-                <Typography variant="h6" sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <DeleteSweep color="primary" /> Finalized Job Queue
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Permanently deletes all finalized job files from primary storage.
-                </Typography>
-              </Box>
-              <Button
-                variant="contained"
-                color="error"
-                disableElevation
-                onClick={() => handleOpenConfirm("queue")}
-                disabled={loading !== null}
-                startIcon={loading === "queue" ? <CircularProgress size={20} color="inherit" /> : null}
-                sx={{ minWidth: 160, borderRadius: 2 }}
-              >
-                Purge Queue
-              </Button>
-            </Stack>
-          </CardContent>
-        </Card>
-
-        {/* Clear Temp Card */}
-        <Card variant="outlined" sx={{ borderRadius: 3 }}>
-          <CardContent sx={{ p: 3 }}>
-            <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" alignItems="center" spacing={2}>
-              <Box>
-                <Typography variant="h6" sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <CloudOff color="warning" /> Temporary Uploads
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Purges orphaned temporary files that were never finalized.
-                </Typography>
-              </Box>
-              <Button
-                variant="outlined"
-                color="error"
-                onClick={() => handleOpenConfirm("temp")}
-                disabled={loading !== null}
-                startIcon={loading === "temp" ? <CircularProgress size={20} color="inherit" /> : null}
-                sx={{ minWidth: 160, borderRadius: 2 }}
-              >
-                Clear Temp
-              </Button>
-            </Stack>
-          </CardContent>
-        </Card>
-      </Stack>
-
-      {/* Confirmation Modal */}
-      <Dialog 
-        open={confirmOpen} 
-        onClose={handleCloseConfirm}
-        PaperProps={{ sx: { borderRadius: 3, p: 1 } }}
-      >
-        <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <WarningAmber color="error" /> Confirm Destruction
-        </DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Are you sure you want to purge these files? This action is <strong>irreversible</strong> and will immediately free up space on the server.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions sx={{ pb: 2, px: 3 }}>
-          <Button onClick={handleCloseConfirm} color="inherit">Cancel</Button>
+    <AdminPortalLayout>
+      {/* Header & Main Actions */}
+      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 2 }}>
+        <Box>
+          <Typography variant="h4" sx={{ fontWeight: 900, letterSpacing: -1 }}>Global Queue</Typography>
+          <Typography color="text.secondary">Real-time print fulfillment and storage maintenance</Typography>
+        </Box>
+        
+        <Box sx={{ display: 'flex', gap: 1 }}>
           <Button 
-            onClick={executePurge} 
+            variant="outlined" 
+            color="error" 
+            startIcon={<Trash2 size={18} />}
+            onClick={() => setQueueModalOpen(true)}
+            sx={{ borderRadius: 2, fontWeight: 700 }}
+          >
+            Clear Storage
+          </Button>
+          <Button 
+            variant="outlined" 
+            color="warning" 
+            startIcon={<AlertTriangle size={18} />}
+            onClick={() => setTempModalOpen(true)}
+            sx={{ borderRadius: 2, fontWeight: 700 }}
+          >
+            Clear Temp
+          </Button>
+          <Button 
+            variant="contained" 
+            startIcon={<RefreshCw size={18} />} 
+            onClick={fetchJobs}
+            sx={{ borderRadius: 2, fontWeight: 700 }}
+          >
+            Refresh
+          </Button>
+        </Box>
+      </Box>
+
+      {statusMsg && (
+        <Alert severity={statusMsg.type} sx={{ mb: 3, borderRadius: 3, fontWeight: 600 }}>
+          {statusMsg.text}
+        </Alert>
+      )}
+
+      {/* Filters Card */}
+      <Card sx={{ mb: 3, p: 2, borderRadius: 3, display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+        <TextField
+          size="small"
+          placeholder="Search jobs..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          InputProps={{ startAdornment: <Search size={18} style={{ marginRight: 8, opacity: 0.5 }} /> }}
+          sx={{ flexGrow: 1, minWidth: '200px' }}
+        />
+        <TextField
+          select
+          size="small"
+          label="Status"
+          value={filterStatus}
+          onChange={(e) => setFilterStatus(e.target.value)}
+          sx={{ minWidth: '150px' }}
+        >
+          <MenuItem value="all">All Status</MenuItem>
+          {Object.keys(statusMap).map(s => <MenuItem key={s} value={s} sx={{ textTransform: 'capitalize' }}>{s}</MenuItem>)}
+        </TextField>
+      </Card>
+
+      {/* Main Table */}
+      <TableContainer component={Card} sx={{ borderRadius: 4, border: 'none', boxShadow: theme.shadows[2] }}>
+        <Table>
+          <TableHead sx={{ bgcolor: alpha(theme.palette.primary.main, 0.05) }}>
+            <TableRow>
+              <TableCell sx={{ fontWeight: 800 }}>DOCUMENT</TableCell>
+              <TableCell sx={{ fontWeight: 800 }}>USER</TableCell>
+              <TableCell sx={{ fontWeight: 800 }}>STATUS</TableCell>
+              <TableCell sx={{ fontWeight: 800 }}>COST</TableCell>
+              <TableCell sx={{ fontWeight: 800 }}>CODE</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 800 }}>ACTION</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {filteredJobs.map((job) => (
+              <TableRow key={job.id} hover>
+                <TableCell>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                    <Box sx={{ p: 1, bgcolor: alpha(theme.palette.primary.main, 0.1), borderRadius: 2 }}>
+                      <FileText size={20} color={theme.palette.primary.main} />
+                    </Box>
+                    <Box>
+                      <Typography variant="body2" sx={{ fontWeight: 700, lineHeight: 1.2 }}>{job.file_name}</Typography>
+                      <Typography variant="caption" color="text.secondary">{job.page_count} pages • {job.is_color ? 'Color' : 'B&W'}</Typography>
+                    </Box>
+                  </Box>
+                </TableCell>
+                <TableCell>
+                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                     <User size={14} />
+                     <Typography variant="body2">{job.profiles?.full_name || 'Guest'}</Typography>
+                   </Box>
+                </TableCell>
+                <TableCell>
+                  <Chip 
+                    label={job.status} 
+                    size="small" 
+                    icon={statusMap[job.status]?.icon}
+                    color={statusMap[job.status]?.color || 'default'}
+                    sx={{ fontWeight: 700, textTransform: 'uppercase', fontSize: '0.65rem' }}
+                  />
+                </TableCell>
+                <TableCell sx={{ fontWeight: 800 }}>৳{job.cost.toFixed(2)}</TableCell>
+                <TableCell>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, fontFamily: 'monospace', fontWeight: 900, color: 'primary.main' }}>
+                    <Hash size={14} /> {job.release_code || '----'}
+                  </Box>
+                </TableCell>
+                <TableCell align="right">
+                  <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'flex-end' }}>
+                    {job.status === 'pending' && (
+                      <Button 
+                        variant="contained" 
+                        size="small"
+                        disableElevation
+                        onClick={() => handleRelease(job.id)}
+                        disabled={releasing === job.id}
+                        sx={{ borderRadius: 1.5, fontWeight: 800, bgcolor: 'text.primary' }}
+                      >
+                        {releasing === job.id ? <CircularProgress size={16} color="inherit" /> : 'Release'}
+                      </Button>
+                    )}
+                    <Tooltip title="View Meta">
+                      <IconButton size="small" sx={{ border: '1px solid', borderColor: 'divider' }}>
+                        <Eye size={16} />
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      {/* Confirmation Modals */}
+      <Dialog open={tempModalOpen} onClose={() => setTempModalOpen(false)} PaperProps={{ sx: { borderRadius: 3 } }}>
+        <DialogTitle sx={{ fontWeight: 800 }}>Purge Temporary Files?</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2">This will delete all files in the <code>/temp</code> storage bucket. These are typically failed or abandoned uploads.</Typography>
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setTempModalOpen(false)}>Cancel</Button>
+          <Button 
             variant="contained" 
             color="error" 
-            autoFocus 
-            disableElevation
-            sx={{ borderRadius: 2 }}
+            onClick={() => handlePurge('clear-temp-files')}
+            disabled={clearingTemp}
           >
-            Confirm Purge
+            {clearingTemp ? 'Clearing...' : 'Confirm Purge'}
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Notification System */}
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-      >
-        <Alert 
-          onClose={() => setSnackbar({ ...snackbar, open: false })} 
-          severity={snackbar.severity} 
-          variant="filled"
-          sx={{ width: "100%", borderRadius: 2 }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
-    </Box>
+      <Dialog open={queueModalOpen} onClose={() => setQueueModalOpen(false)} PaperProps={{ sx: { borderRadius: 3 } }}>
+        <DialogTitle sx={{ fontWeight: 800 }}>Clear Finalized Storage?</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2">This removes <strong>physical PDF files</strong> for all processed jobs to save space. Metadata records in the database will remain.</Typography>
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setQueueModalOpen(false)}>Cancel</Button>
+          <Button 
+            variant="contained" 
+            color="error" 
+            onClick={() => handlePurge('clear-queue-uploads')}
+            disabled={clearingQueue}
+          >
+            {clearingQueue ? 'Clearing...' : 'Confirm Purge'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </AdminPortalLayout>
+  );
+}
+
+export default function GlobalQueuePage() {
+  return (
+    <Suspense fallback={<Box sx={{ p: 4, textAlign: 'center' }}><CircularProgress /></Box>}>
+      <GlobalQueueContent />
+    </Suspense>
   );
 }
