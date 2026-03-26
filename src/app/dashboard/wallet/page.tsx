@@ -8,7 +8,7 @@ import {
   Box, Typography, Grid, Card, CardContent, Button, TextField,
   Divider, List, ListItem, ListItemText, ListItemIcon,
   InputAdornment, Dialog, DialogTitle, DialogContent,
-  DialogActions, CircularProgress, IconButton, Stack, useTheme, alpha, Fade
+  DialogActions, CircularProgress, IconButton, useTheme, alpha, Fade
 } from '@mui/material';
 import {
   Wallet, ArrowUpRight, ArrowDownLeft, QrCode,
@@ -120,7 +120,7 @@ export default function WalletPage() {
 
   return (
     <DashboardLayout>
-      {/* Header Section */}
+      {/* Header */}
       <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Box>
           <Typography variant="h4" sx={{ fontWeight: 900, letterSpacing: -1.5 }}>Wallet</Typography>
@@ -134,7 +134,7 @@ export default function WalletPage() {
       {/* Main Grid: Asymmetric 4/8 Layout */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         
-        {/* Balance Card - Compact (33% width) */}
+        {/* Balance Card - Compact (4 columns on desktop) */}
         <Grid item xs={12} md={4}>
           <Card sx={{
             height: '100%', borderRadius: 4, bgcolor: 'text.primary', color: 'background.paper',
@@ -163,7 +163,7 @@ export default function WalletPage() {
           </Card>
         </Grid>
 
-        {/* Recharge Card - Functional (66% width) */}
+        {/* Recharge Card - Wide (8 columns on desktop) */}
         <Grid item xs={12} md={8}>
           <Card variant="outlined" sx={{ height: '100%', borderRadius: 4, bgcolor: 'background.paper' }}>
             <CardContent sx={{ p: 4 }}>
@@ -172,7 +172,7 @@ export default function WalletPage() {
                 Redeem a voucher code or scan a QR to instantly add credits.
               </Typography>
 
-              <Grid container spacing={2} alignItems="flex-start">
+              <Grid container spacing={2}>
                 <Grid item xs={12} sm={8}>
                   <TextField
                     fullWidth
@@ -205,7 +205,7 @@ export default function WalletPage() {
                 sx={{
                   mt: 2, py: 1.8, bgcolor: 'text.primary', color: 'background.paper', fontWeight: 900, borderRadius: 3,
                   boxShadow: '0 8px 20px -4px rgba(0,0,0,0.2)',
-                  '&:hover': { bgcolor: 'primary.main' }
+                  '&:hover': { bgcolor: alpha(theme.palette.text.primary, 0.8) }
                 }}
               >
                 {recharging ? <CircularProgress size={24} color="inherit" /> : 'Confirm Redemption'}
@@ -230,7 +230,7 @@ export default function WalletPage() {
         </Grid>
       </Grid>
 
-      {/* Full-Width History Section (Outside of Grid) */}
+      {/* Full-Width History Section */}
       <Card variant="outlined" sx={{ borderRadius: 4, overflow: 'hidden' }}>
         <Box sx={{ px: 3, py: 2.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 900 }}>Transaction History</Typography>
