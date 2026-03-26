@@ -7,52 +7,45 @@ import {
   Grid, Typography, Card, CardContent, Box, Button, Table,
   TableBody, TableCell, TableContainer, TableHead, TableRow,
   alpha, IconButton, Dialog, DialogContent, DialogTitle, 
-  Stack, LinearProgress, Tooltip
+  Stack, LinearProgress
 } from '@mui/material';
 import {
-  UploadCloud, ExternalLink, Wallet, Zap, Printer, 
-  QrCode, X, Clock, CheckCircle2, XCircle, Undo2, Loader2
+  ExternalLink, Wallet, Zap, Printer, 
+  QrCode, X, Clock, CheckCircle2, XCircle, Undo2
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
-// --- Configuration ---
+// Move static config outside to prevent re-renders
 const STATUS_CONFIG = {
-  processing: { label: 'Processing', color: '#5a82e8', icon: <Zap size={14} /> },
+  processing: { label: 'Processing', color: '#5a82e8', icon: <Zap size={14} fill="#5a82e8" /> },
   pending: { label: 'Pending', color: '#ed6c02', icon: <Clock size={14} /> },
   canceled: { label: 'Canceled', color: '#d32f2f', icon: <XCircle size={14} /> },
   refunded: { label: 'Refunded', color: '#9c27b0', icon: <Undo2 size={14} /> },
   completed: { label: 'Completed', color: '#2e7d32', icon: <CheckCircle2 size={14} /> },
 };
 
-interface PrintJob {
-  id: string;
-  file_name: string;
-  created_at: string;
-  status: keyof typeof STATUS_CONFIG;
-  release_code: string;
-  cost: number;
-}
-
 export default function DashboardPage() {
-  const [jobs, setJobs] = useState<PrintJob[]>([]);
-  const [profile, setProfile] = useState<any>(null);
-  const [kiosks, setKiosks] = useState<any[]>([]);
+  const [data, setData] = useState({ jobs: [], profile: null, kiosks: [] });
   const [loading, setLoading] = useState(true);
-  const [qrJob, setQrJob] = useState<PrintJob | null>(null);
+  const [qrJob, setQrJob] = useState<any>(null);
 
   const fetchData = useCallback(async () => {
+    // Only fetch session once
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
 
+    // Parallel fetch with a single state update to avoid multiple re-renders
     const [jobsRes, profileRes, kiosksRes] = await Promise.all([
-      supabase.from('print_jobs').select('*').eq('user_id', session.user.id).order('created_at', { ascending: false }).limit(5),
-      supabase.from('profiles').select('*').eq('id', session.user.id).single(),
+      supabase.from('print_jobs').select('id, file_name, status, release_code, cost').eq('user_id', session.user.id).order('created_at', { ascending: false }).limit(5),
+      supabase.from('profiles').select('full_name, wallet_balance').eq('id', session.user.id).single(),
       supabase.from('kiosks').select('name, status').limit(4)
     ]);
 
-    if (jobsRes.data) setJobs(jobsRes.data as PrintJob[]);
-    if (profileRes.data) setProfile(profileRes.data);
-    if (kiosksRes.data) setKiosks(kiosksRes.data);
+    setData({
+      jobs: jobsRes.data || [],
+      profile: profileRes.data || null,
+      kiosks: kiosksRes.data || []
+    });
     setLoading(false);
   }, []);
 
@@ -71,166 +64,146 @@ export default function DashboardPage() {
     );
   };
 
-  if (loading) return (
-    <DashboardLayout>
-      <Box sx={{ width: '100%', mt: 4 }}><LinearProgress /></Box>
-    </DashboardLayout>
-  );
-
+  // Always wrap in DashboardLayout to prevent "Layout Jumping"
   return (
     <DashboardLayout>
-      {/* Header Section */}
-      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
-        <Box>
-          <Typography variant="h4" sx={{ fontWeight: 900, letterSpacing: -1 }}>
-            Hey, {profile?.full_name?.split(' ')[0] || 'User'}!
-          </Typography>
-          <Typography color="text.secondary" variant="body2">
-            {(profile?.wallet_balance ?? 0) < 5 ? "Low balance alert! Top up soon." : "Your printing station is ready."}
+      {loading ? (
+        <Box sx={{ width: '100%', mt: 4 }}>
+          <LinearProgress sx={{ borderRadius: 2, height: 6 }} />
+          <Typography variant="caption" sx={{ mt: 2, display: 'block', textAlign: 'center', fontWeight: 600, color: 'text.secondary' }}>
+            Syncing your printing station...
           </Typography>
         </Box>
+      ) : (
+        <>
+          {/* Header Section */}
+          <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+            <Box>
+              <Typography variant="h4" sx={{ fontWeight: 900, letterSpacing: -1 }}>
+                Hey, {data.profile?.full_name?.split(' ')[0] || 'User'}!
+              </Typography>
+              <Typography color="text.secondary" variant="body2">
+                {(data.profile?.wallet_balance ?? 0) < 5 ? "Low balance alert! Top up soon." : "Your printing station is ready."}
+              </Typography>
+            </Box>
 
-        <Card variant="outlined" sx={{ 
-          borderRadius: 3, px: 3, py: 1.5, display: 'flex', alignItems: 'center', gap: 2, 
-          bgcolor: 'success.main', color: 'white', border: 'none', boxShadow: (theme) => `0 10px 20px ${alpha(theme.palette.success.main, 0.2)}`
-        }}>
-          <Wallet size={20} />
-          <Box>
-            <Typography variant="caption" sx={{ fontWeight: 700, opacity: 0.8, display: 'block', lineHeight: 1 }}>BALANCE</Typography>
-            <Typography variant="h6" sx={{ fontWeight: 900, lineHeight: 1 }}>৳{profile?.wallet_balance?.toFixed(2)}</Typography>
-          </Box>
-        </Card>
-      </Box>
-
-      <Grid container spacing={3}>
-        {/* Left: Recent Activity */}
-        <Grid size={{ xs: 12, md: 8 }}>
-          <Card variant="outlined" sx={{ borderRadius: 3, height: '100%' }}>
-            <CardContent sx={{ p: 3 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                <Typography variant="h6" sx={{ fontWeight: 800 }}>Recent Activity</Typography>
-                <Button size="small" endIcon={<ExternalLink size={14} />} onClick={() => window.location.href = '/dashboard/history'}>Full History</Button>
-              </Box>
-
-              <TableContainer>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell sx={{ fontWeight: 700, color: 'text.secondary', fontSize: '0.7rem' }}>FILE</TableCell>
-                      <TableCell sx={{ fontWeight: 700, color: 'text.secondary', fontSize: '0.7rem' }}>STATUS</TableCell>
-                      <TableCell sx={{ fontWeight: 700, color: 'text.secondary', fontSize: '0.7rem' }}>CODE</TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 700, color: 'text.secondary', fontSize: '0.7rem' }}>COST</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {jobs.map((job) => (
-                      <TableRow key={job.id} hover>
-                        <TableCell sx={{ fontWeight: 600, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {job.file_name}
-                        </TableCell>
-                        <TableCell><StatusBadge status={job.status} /></TableCell>
-                        <TableCell>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Typography variant="body2" sx={{ fontFamily: 'monospace', fontWeight: 800, color: 'primary.main', bgcolor: alpha('#1976d2', 0.05), px: 1, borderRadius: 1 }}>
-                              {job.release_code || '---'}
-                            </Typography>
-                            {job.release_code && (
-                              <IconButton size="small" onClick={() => setQrJob(job)} sx={{ color: 'primary.main' }}>
-                                <QrCode size={16} />
-                              </IconButton>
-                            )}
-                          </Box>
-                        </TableCell>
-                        <TableCell align="right" sx={{ fontWeight: 800 }}>৳{job.cost.toFixed(2)}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* Right: Actions & Map */}
-        {/* Right: Actions & Map */}
-        <Grid size={{ xs: 12, md: 4 }}>
-          <Stack spacing={3}>
-            {/* Quick Upload Action - Now with controlled height */}
-            <Card sx={{ 
-              borderRadius: 4, 
-              bgcolor: 'text.primary', 
-              color: 'background.paper',
-              position: 'relative', 
-              overflow: 'hidden',
-              minHeight: 200, // Fixed height so it doesn't stretch awkwardly
-              display: 'flex', 
-              alignItems: 'center',
-              boxShadow: '0 10px 30px -5px rgba(0,0,0,0.3)'
+            <Card variant="outlined" sx={{ 
+              borderRadius: 3, px: 3, py: 1.5, display: 'flex', alignItems: 'center', gap: 2, 
+              bgcolor: 'success.main', color: 'white', border: 'none', 
+              boxShadow: (theme) => `0 10px 20px ${alpha(theme.palette.success.main, 0.2)}`
             }}>
-              {/* Background Decoration */}
-              <Box sx={{ 
-                position: 'absolute', 
-                right: -15, 
-                bottom: -15, 
-                opacity: 0.1, 
-                transform: 'rotate(-15deg)',
-                color: 'inherit' 
-              }}>
-                <Printer size={140} />
+              <Wallet size={20} />
+              <Box>
+                <Typography variant="caption" sx={{ fontWeight: 700, opacity: 0.8, display: 'block', lineHeight: 1 }}>BALANCE</Typography>
+                <Typography variant="h6" sx={{ fontWeight: 900, lineHeight: 1 }}>৳{data.profile?.wallet_balance?.toFixed(2)}</Typography>
               </Box>
-
-              <CardContent sx={{ p: 4, width: '100%', position: 'relative', zIndex: 1 }}>
-                <Typography variant="h6" sx={{ fontWeight: 900, mb: 1, lineHeight: 1.2 }}>
-                  Ready to print?
-                </Typography>
-                <Typography variant="body2" sx={{ opacity: 0.7, mb: 3, maxWidth: '80%' }}>
-                  Upload PDF and release at any kiosk instantly.
-                </Typography>
-                <Button 
-                  fullWidth 
-                  variant="contained" 
-                  onClick={() => window.location.href='/dashboard/upload'}
-                  sx={{ 
-                    bgcolor: 'background.paper', 
-                    color: 'text.primary', 
-                    fontWeight: 800, 
-                    borderRadius: 2,
-                    textTransform: 'none',
-                    '&:hover': { bgcolor: alpha('#fff', 0.9), transform: 'translateY(-2px)' },
-                    transition: 'all 0.2s'
-                  }}
-                >
-                  Upload Document
-                </Button>
-              </CardContent>
             </Card>
+          </Box>
 
-            {/* Kiosk Status */}
-            <Card variant="outlined" sx={{ borderRadius: 3 }}>
-              <CardContent sx={{ p: 3 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                  <Zap size={18} color="#ed6c02" />
-                  <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>Nearby Kiosks</Typography>
-                </Box>
-                <Stack spacing={2}>
-                  {kiosks.map((k, i) => (
-                    <Box key={i} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Typography variant="body2" sx={{ fontWeight: 600 }}>{k.name}</Typography>
-                      <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: k.status === 'online' ? 'success.main' : 'error.main', boxShadow: (theme) => `0 0 8px ${k.status === 'online' ? theme.palette.success.main : theme.palette.error.main}` }} />
+          <Grid container spacing={3}>
+            {/* Left: Recent Activity */}
+            <Grid item xs={12} md={8}>
+              <Card variant="outlined" sx={{ borderRadius: 3 }}>
+                <CardContent sx={{ p: 3 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 800 }}>Recent Activity</Typography>
+                    <Button size="small" endIcon={<ExternalLink size={14} />} onClick={() => window.location.href = '/dashboard/history'}>Full History</Button>
+                  </Box>
+
+                  <TableContainer>
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell sx={{ fontWeight: 700, color: 'text.secondary', fontSize: '0.7rem' }}>FILE</TableCell>
+                          <TableCell sx={{ fontWeight: 700, color: 'text.secondary', fontSize: '0.7rem' }}>STATUS</TableCell>
+                          <TableCell sx={{ fontWeight: 700, color: 'text.secondary', fontSize: '0.7rem' }}>CODE</TableCell>
+                          <TableCell align="right" sx={{ fontWeight: 700, color: 'text.secondary', fontSize: '0.7rem' }}>COST</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {data.jobs.map((job: any) => (
+                          <TableRow key={job.id} hover>
+                            <TableCell sx={{ fontWeight: 600, maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {job.file_name}
+                            </TableCell>
+                            <TableCell><StatusBadge status={job.status} /></TableCell>
+                            <TableCell>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <Typography variant="body2" sx={{ fontFamily: 'monospace', fontWeight: 800, color: 'primary.main', bgcolor: alpha('#1976d2', 0.05), px: 1, borderRadius: 1 }}>
+                                  {job.release_code || '---'}
+                                </Typography>
+                                {job.release_code && (
+                                  <IconButton size="small" onClick={() => setQrJob(job)} sx={{ color: 'primary.main' }}>
+                                    <QrCode size={16} />
+                                  </IconButton>
+                                )}
+                              </Box>
+                            </TableCell>
+                            <TableCell align="right" sx={{ fontWeight: 800 }}>৳{job.cost.toFixed(2)}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </CardContent>
+              </Card>
+            </Grid>
+
+            {/* Right Side Stack */}
+            <Grid item xs={12} md={4}>
+              <Stack spacing={3}>
+                <Card sx={{ 
+                  borderRadius: 4, bgcolor: 'text.primary', color: 'background.paper',
+                  position: 'relative', overflow: 'hidden', minHeight: 180,
+                  display: 'flex', alignItems: 'center'
+                }}>
+                  <Box sx={{ position: 'absolute', right: -10, bottom: -10, opacity: 0.1, transform: 'rotate(-15deg)' }}>
+                    <Printer size={120} />
+                  </Box>
+                  <CardContent sx={{ p: 3, zIndex: 1 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 900, mb: 0.5 }}>Ready to print?</Typography>
+                    <Typography variant="body2" sx={{ opacity: 0.7, mb: 2 }}>Upload and release at any kiosk.</Typography>
+                    <Button 
+                      variant="contained" 
+                      onClick={() => window.location.href='/dashboard/upload'}
+                      sx={{ bgcolor: 'background.paper', color: 'text.primary', fontWeight: 800, textTransform: 'none' }}
+                    >
+                      Upload Now
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                <Card variant="outlined" sx={{ borderRadius: 3 }}>
+                  <CardContent sx={{ p: 3 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                      <Zap size={18} color="#ed6c02" fill="#ed6c02" />
+                      <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>Nearby Kiosks</Typography>
                     </Box>
-                  ))}
-                </Stack>
-              </CardContent>
-            </Card>
-          </Stack>
-        </Grid>
-      </Grid>
+                    <Stack spacing={1.5}>
+                      {data.kiosks.map((k: any, i) => (
+                        <Box key={i} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <Typography variant="body2" sx={{ fontWeight: 600 }}>{k.name}</Typography>
+                          <Box sx={{ 
+                            width: 8, height: 8, borderRadius: '50%', 
+                            bgcolor: k.status === 'online' ? 'success.main' : 'error.main',
+                            boxShadow: (theme) => `0 0 8px ${k.status === 'online' ? theme.palette.success.main : theme.palette.error.main}`
+                          }} />
+                        </Box>
+                      ))}
+                    </Stack>
+                  </CardContent>
+                </Card>
+              </Stack>
+            </Grid>
+          </Grid>
+        </>
+      )}
 
-      {/* QR Code Dialog */}
+      {/* QR Dialog remains the same... */}
       <Dialog open={!!qrJob} onClose={() => setQrJob(null)} PaperProps={{ sx: { borderRadius: 4, p: 2, maxWidth: 350 } }}>
-        <DialogTitle sx={{ fontWeight: 900, px: 2, display: 'flex', justifyContent: 'space-between' }}>
+        <DialogTitle sx={{ fontWeight: 900, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           Scan to Print
-          <IconButton size="small" onClick={() => setQrJob(null)}><X size={18} /></IconButton>
+          <IconButton onClick={() => setQrJob(null)}><X size={18} /></IconButton>
         </DialogTitle>
         <DialogContent sx={{ textAlign: 'center', pb: 4 }}>
           {qrJob?.release_code && (
@@ -238,10 +211,9 @@ export default function DashboardPage() {
               <QRCodeSVG value={qrJob.release_code} size={180} />
             </Box>
           )}
-          <Typography variant="h4" sx={{ fontFamily: 'monospace', fontWeight: 900, color: 'primary.main', letterSpacing: 4, mb: 1 }}>
+          <Typography variant="h4" sx={{ fontFamily: 'monospace', fontWeight: 900, color: 'primary.main', letterSpacing: 4 }}>
             {qrJob?.release_code}
           </Typography>
-          <Typography variant="caption" color="text.secondary">Scan at kiosk to release your file</Typography>
         </DialogContent>
       </Dialog>
     </DashboardLayout>
