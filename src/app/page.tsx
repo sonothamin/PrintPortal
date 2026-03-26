@@ -211,7 +211,7 @@ export default function LandingPage() {
             variant="h2"
             sx={{ fontWeight: 900, mb: 3, letterSpacing: -2, lineHeight: 1.1 }}
           >
-            Say goodbye to print hassles.
+            Say Hello to <i>Convenience</i>.
           </Typography>
           <Typography
             variant="h6"
