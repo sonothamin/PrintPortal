@@ -231,8 +231,8 @@ export default function KioskPage() {
             <Typography variant="h4" sx={{ fontWeight: 900, letterSpacing: -1, lineHeight: 1 }}>
               PrintPortal
             </Typography>
-            <Typography variant="body2" sx={{ opacity: 0.5, fontWeight: 700 }}>
-              KIOSK: LIB-HQ-01 | LOCATION: LIBRARY 1F
+            <Typography variant="body2" sx={{ opacity: 0.6, fontWeight: 700 }}>
+              Public Kiosk
             </Typography>
           </Box>
         </Box>
@@ -432,7 +432,7 @@ export default function KioskPage() {
       {/* Footer / Status */}
       <Box sx={{ mt: 'auto', textAlign: 'center', opacity: 0.4 }}>
         <Typography variant="caption" sx={{ fontWeight: 700 }}>
-          DEVICE ENCRYPTED | AUTOMATED MAINTENANCE CHECK COMPLETED
+          © 2026 PrintPortal - Sonoth Amin
         </Typography>
       </Box>
 
