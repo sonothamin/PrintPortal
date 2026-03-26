@@ -338,7 +338,7 @@ export default function AuthPage() {
                   )}
 
                   {view === 'login' && (
-                    <Box sx={{ textAlign: 'right', mt: 1 }}>
+                    <Box sx={{ textAlign: 'center', mt: 1 }}>
                       <Link
                         component="button"
                         variant="body2"
