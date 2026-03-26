@@ -290,8 +290,22 @@ export default function LandingPage() {
           <Typography variant="caption" color="text.secondary" align="center" sx={{ display: 'block', fontStyle: 'italic', mb: 3 }}>
             PrintPortal - because your time matters.
           </Typography>
-          <Typography variant="caption" color="text.secondary" align="center" sx={{ display: 'block', opacity: 0.5 }}>
-            © 2026 PrintPortal - Sonoth Amin
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            align="center"
+            sx={{ display: 'block', opacity: 0.5 }}
+          >
+            © 2026 PrintPortal - Sonoth Amin • {' '}
+            <MuiLink
+              component={Link}
+              href="/legal"
+              underline="hover"
+              color="inherit"
+              sx={{ fontWeight: 500 }}
+            >
+              Legal
+            </MuiLink>
           </Typography>
         </Container>
       </Box>

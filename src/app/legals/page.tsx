@@ -67,9 +67,12 @@ export default function LegalPage() {
                     <Typography variant="h2" gutterBottom>
                         Legal Center
                     </Typography>
-                    <Typography variant="h6" color="text.secondary" sx={{ fontWeight: 400 }}>
+                    <Typography variant="h6" color="text.secondary" sx={{ fontWeight: 600 }}>
                         Review our terms, privacy commitments, and usage agreements.
                     </Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{letterSpacing: 1, fontWeight: 400 }}>
+                                Effective Date: March 26, 2026
+                            </Typography>
                 </Container>
             </Box>
 
@@ -102,10 +105,7 @@ export default function LegalPage() {
                     <Box sx={{ px: { xs: 3, md: 6 }, pb: 6 }}>
                         {/* 1. Terms of Service */}
                         <CustomTabPanel value={value} index={0}>
-                            <Typography variant="caption" color="primary" sx={{ textTransform: 'uppercase', letterSpacing: 1, fontWeight: 700 }}>
-                                Effective Date: March 26, 2026
-                            </Typography>
-
+                            
                             <Typography variant="h4" sx={sectionHeaderSx}>
                                 Terms of Service (ToS)
                             </Typography>
