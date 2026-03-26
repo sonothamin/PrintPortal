@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { supabase } from '@/lib/supabase';
 import {
-  Grid,
+  Grid2 as Grid,
   Typography,
   Card,
   CardContent,
@@ -22,7 +22,8 @@ import {
   Dialog,
   DialogContent,
   DialogTitle,
-  Stack
+  Stack,
+  Skeleton
 } from '@mui/material';
 import {
   UploadCloud,
@@ -34,8 +35,7 @@ import {
   X,
   Clock,
   CheckCircle2,
-  XCircle,
-  Undo2
+  XCircle
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -65,20 +65,25 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [qrJob, setQrJob] = useState<PrintJob | null>(null);
 
-  const fetchData = React.useCallback(async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return;
+  const fetchData = useCallback(async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
 
-    const [jobsRes, profileRes, kiosksRes] = await Promise.all([
-      supabase.from('print_jobs').select('*').eq('user_id', session.user.id).order('created_at', { ascending: false }).limit(5),
-      supabase.from('profiles').select('*').eq('id', session.user.id).single(),
-      supabase.from('kiosks').select('name, status').limit(5)
-    ]);
+      const [jobsRes, profileRes, kiosksRes] = await Promise.all([
+        supabase.from('print_jobs').select('*').eq('user_id', session.user.id).order('created_at', { ascending: false }).limit(5),
+        supabase.from('profiles').select('*').eq('id', session.user.id).single(),
+        supabase.from('kiosks').select('name, status').limit(5)
+      ]);
 
-    if (jobsRes.data) setJobs(jobsRes.data as PrintJob[]);
-    if (profileRes.data) setProfile(profileRes.data as UserProfile);
-    if (kiosksRes.data) setKiosks(kiosksRes.data as Kiosk[]);
-    setLoading(false);
+      if (jobsRes.data) setJobs(jobsRes.data as PrintJob[]);
+      if (profileRes.data) setProfile(profileRes.data as UserProfile);
+      if (kiosksRes.data) setKiosks(kiosksRes.data as Kiosk[]);
+    } catch (err) {
+      console.error("Error fetching dashboard data:", err);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -99,7 +104,7 @@ export default function DashboardPage() {
       completed: { color: 'success', icon: <CheckCircle2 size={12} /> },
       canceled: { color: 'error', icon: <XCircle size={12} /> }
     };
-    const config = configs[status];
+    const config = configs[status] || configs.pending;
     return (
       <Chip 
         label={status.toUpperCase()} 
@@ -111,23 +116,16 @@ export default function DashboardPage() {
     );
   };
 
-  if (loading) return (
-    <DashboardLayout>
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
-        <Typography color="text.secondary" sx={{ fontWeight: 700 }}>Loading your dashboard...</Typography>
-      </Box>
-    </DashboardLayout>
-  );
-
   return (
     <DashboardLayout>
+      {/* Header & Balance */}
       <Box sx={{ mb: 6, display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'flex-end' }, gap: 3 }}>
         <Box>
           <Typography variant="h4" sx={{ fontWeight: 900, mb: 1, letterSpacing: -1.5 }}>
-            {getGreeting()}, {profile?.full_name?.split(' ')[0] || 'User'}!
+            {loading ? <Skeleton width={200} /> : `${getGreeting()}, ${profile?.full_name?.split(' ')[0] || 'User'}!`}
           </Typography>
           <Typography color="text.secondary" variant="body2" sx={{ fontWeight: 500 }}>
-            {(profile?.wallet_balance ?? 0) < 5
+            {loading ? <Skeleton width={250} /> : (profile?.wallet_balance ?? 0) < 5
               ? "Your balance is low. Top up to keep printing!"
               : "Ready to turn those digital files into paper?"}
           </Typography>
@@ -139,13 +137,16 @@ export default function DashboardPage() {
           </Box>
           <Box>
             <Typography variant="caption" sx={{ fontWeight: 800, color: 'success.main', display: 'block', lineHeight: 1, mb: 0.5 }}>BALANCE</Typography>
-            <Typography variant="h6" sx={{ fontWeight: 900, lineHeight: 1 }}>৳{profile?.wallet_balance.toFixed(2)}</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 900, lineHeight: 1 }}>
+              ৳{loading ? '0.00' : profile?.wallet_balance?.toFixed(2)}
+            </Typography>
           </Box>
         </Card>
       </Box>
 
       <Grid container spacing={4}>
-        <Grid item xs={12} md={8}>
+        {/* Main Content Area */}
+        <Grid size={{ xs: 12, md: 8 }}>
           <Card variant="outlined" sx={{ borderRadius: 2, mb: 4, border: 'none', boxShadow: (theme) => theme.palette.mode === 'dark' ? '0 4px 20px rgba(0,0,0,0.5)' : '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}>
             <CardContent sx={{ p: 4 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -164,7 +165,9 @@ export default function DashboardPage() {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {jobs.map((job) => (
+                    {loading ? [...Array(3)].map((_, i) => (
+                      <TableRow key={i}><TableCell colSpan={4}><Skeleton height={45} /></TableCell></TableRow>
+                    )) : jobs.map((job) => (
                       <TableRow key={job.id} hover>
                         <TableCell sx={{ fontWeight: 700, fontSize: '0.85rem' }}>{job.file_name}</TableCell>
                         <TableCell><StatusBadge status={job.status} /></TableCell>
@@ -183,7 +186,9 @@ export default function DashboardPage() {
           </Card>
         </Grid>
 
-        <Grid item xs={12} md={4}>
+        {/* Sidebar Area */}
+        <Grid size={{ xs: 12, md: 4 }}>
+          {/* Quick Upload Action */}
           <Card
             sx={{
               borderRadius: 2,
@@ -232,6 +237,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
+          {/* Kiosk Status Card */}
           <Card variant="outlined" sx={{ borderRadius: 2 }}>
             <CardContent sx={{ p: 4 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
@@ -241,7 +247,7 @@ export default function DashboardPage() {
                 <Typography variant="subtitle1" sx={{ fontWeight: 900 }}>Nearby Kiosks</Typography>
               </Box>
               <Stack spacing={2}>
-                {kiosks.map((kiosk, idx) => (
+                {loading ? [...Array(3)].map((_, i) => <Skeleton key={i} height={30} />) : kiosks.map((kiosk, idx) => (
                   <Box key={idx} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Typography variant="body2" sx={{ fontWeight: 700 }}>{kiosk.name}</Typography>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -256,6 +262,7 @@ export default function DashboardPage() {
         </Grid>
       </Grid>
 
+      {/* QR Code Dialog */}
       <Dialog 
         open={!!qrJob} 
         onClose={() => setQrJob(null)}

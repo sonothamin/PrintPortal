@@ -76,7 +76,7 @@ export default function HistoryPage() {
         </Typography>
       </Box>
 
-      <Card variant="outlined" sx={{ borderRadius: 4, mb: 4, overflow: 'hidden' }}>
+      <Card variant="outlined" sx={{ borderRadius: 2, mb: 4, overflow: 'hidden' }}>
         <Box sx={{ p: 3, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', gap: 2, alignItems: 'center' }}>
           <TextField 
             placeholder="Search by filename or code..." 
