@@ -25,11 +25,11 @@ import {
   Phone,
   User
 } from 'lucide-react';
-import { 
-  isValidEmail, 
-  isValidPhone, 
-  sanitizeString, 
-  ERROR_MESSAGES 
+import {
+  isValidEmail,
+  isValidPhone,
+  sanitizeString,
+  ERROR_MESSAGES
 } from '@/lib/validation';
 
 export default function AuthPage() {
@@ -99,11 +99,11 @@ export default function AuthPage() {
         });
 
         if (authError) throw authError;
-        
+
         setStatusMsg({ text: 'Registration successful! You can now log in.', type: 'success' });
         setView('login');
       } else if (view === 'forgotPassword') {
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
           redirectTo: `${window.location.origin}/auth/reset-password`,
         });
         if (error) throw error;
@@ -124,15 +124,15 @@ export default function AuthPage() {
     <Box sx={{ minHeight: '100vh', display: 'flex' }}>
       <Grid container>
         {/* Left Side - Hero/Branding */}
-        <Grid 
-          size={{ xs: 0, md: 6 }} 
-          sx={{ 
+        <Grid
+          size={{ xs: 0, md: 6 }}
+          sx={{
             display: { xs: 'none', md: 'flex' },
             flexDirection: 'column',
             justifyContent: 'center',
             alignItems: 'center',
-            background: (theme) => theme.palette.mode === 'dark' 
-              ? 'linear-gradient(135deg, #000000 0%, #1a1a1a 100%)' 
+            background: (theme) => theme.palette.mode === 'dark'
+              ? 'linear-gradient(135deg, #000000 0%, #1a1a1a 100%)'
               : 'linear-gradient(135deg, #000000 0%, #333333 100%)',
             color: 'background.default',
             p: 6,
@@ -147,26 +147,26 @@ export default function AuthPage() {
               </Typography>
             </Box>
             <Typography variant="h6" sx={{ color: 'rgba(255,255,255,0.7)', mb: 4, fontWeight: 400 }}>
-              The all-in-one portal for seamless document management 
+              The all-in-one portal for seamless document management
               and instant kiosk pick-ups.
             </Typography>
-            
+
           </Box>
         </Grid>
 
         {/* Right Side - Auth Form */}
-        <Grid 
-          size={{ xs: 12, md: 6 }} 
-          sx={{ 
-            display: 'flex', 
+        <Grid
+          size={{ xs: 12, md: 6 }}
+          sx={{
+            display: 'flex',
             flexDirection: 'column',
             justifyContent: 'center',
             bgcolor: 'background.default'
           }}
         >
           <Container maxWidth="xs">
-            <Box 
-              sx={{ 
+            <Box
+              sx={{
                 textAlign: { xs: 'center', md: 'left' },
                 mb: 4
               }}
@@ -185,8 +185,8 @@ export default function AuthPage() {
 
             <Box component="form" noValidate onSubmit={handleSubmit}>
               {statusMsg && (
-                <Alert 
-                  severity={statusMsg.type} 
+                <Alert
+                  severity={statusMsg.type}
                   sx={{ mb: 3, borderRadius: 2 }}
                 >
                   {statusMsg.text}
@@ -295,22 +295,7 @@ export default function AuthPage() {
                 />
               )}
 
-              {view === 'login' && (
-                <Box sx={{ textAlign: 'right', mt: 1 }}>
-                  <Link 
-                    component="button"
-                    variant="body2" 
-                    sx={{ fontWeight: 600, cursor: 'pointer' }}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setView('forgotPassword');
-                      setStatusMsg(null);
-                    }}
-                  >
-                    Forgot password?
-                  </Link>
-                </Box>
-              )}
+
 
               <Button
                 fullWidth
@@ -318,9 +303,9 @@ export default function AuthPage() {
                 variant="contained"
                 size="large"
                 disabled={loading}
-                sx={{ 
-                  mt: 3, 
-                  py: 1.5, 
+                sx={{
+                  mt: 3,
+                  py: 1.5,
                   borderRadius: 2,
                   bgcolor: 'text.primary',
                   color: 'background.default',
@@ -337,9 +322,9 @@ export default function AuthPage() {
                   {view === 'login' && (
                     <>
                       Don't have an account?{' '}
-                      <Link 
+                      <Link
                         component="button"
-                        variant="body2" 
+                        variant="body2"
                         sx={{ fontWeight: 700, cursor: 'pointer' }}
                         onClick={(e) => {
                           e.preventDefault();
@@ -351,12 +336,30 @@ export default function AuthPage() {
                       </Link>
                     </>
                   )}
+
+                  {view === 'login' && (
+                    <Box sx={{ textAlign: 'right', mt: 1 }}>
+                      <Link
+                        component="button"
+                        variant="body2"
+                        sx={{ fontWeight: 600, cursor: 'pointer' }}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setView('forgotPassword');
+                          setStatusMsg(null);
+                        }}
+                      >
+                        Forgot password?
+                      </Link>
+                    </Box>
+                  )}
+
                   {view === 'signup' && (
                     <>
                       Already have an account?{' '}
-                      <Link 
+                      <Link
                         component="button"
-                        variant="body2" 
+                        variant="body2"
                         sx={{ fontWeight: 700, cursor: 'pointer' }}
                         onClick={(e) => {
                           e.preventDefault();
@@ -369,9 +372,9 @@ export default function AuthPage() {
                     </>
                   )}
                   {view === 'forgotPassword' && (
-                    <Link 
+                    <Link
                       component="button"
-                      variant="body2" 
+                      variant="body2"
                       sx={{ fontWeight: 700, cursor: 'pointer' }}
                       onClick={(e) => {
                         e.preventDefault();
