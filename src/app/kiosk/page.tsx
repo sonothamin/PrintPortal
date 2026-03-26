@@ -300,8 +300,8 @@ export default function KioskPage() {
             <Typography variant="h3" sx={{ textAlign: 'center', fontWeight: 900, mb: 1 }}>
               Enter Release Code
             </Typography>
-             <Typography color="text.secondary" variant="body2" sx={{ textAlign: 'center', fontWeight: 900, mb: 2 }}>
-              You can find it in your user dashboard at print-portal-ten.vercel.app/dashboard/history
+             <Typography color="text.secondary" variant="body2" sx={{ textAlign: 'center', fontWeight: 400, mb: 2 }}>
+              You can find your release code in your user dashboard
             </Typography>
 
             {errorMsg && (
