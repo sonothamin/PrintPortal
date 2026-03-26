@@ -195,7 +195,7 @@ export default function LandingPage() {
               display: 'inline-flex',
               alignItems: 'center',
               gap: 1,
-              bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'grey.100',
+              bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgb(70, 70, 70)' : 'grey.100',
               px: 2,
               py: 0.5,
               borderRadius: 10,
