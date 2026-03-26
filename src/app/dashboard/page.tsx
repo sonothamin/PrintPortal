@@ -152,25 +152,55 @@ export default function DashboardPage() {
         </Grid>
 
         {/* Right: Actions & Map */}
+        {/* Right: Actions & Map */}
         <Grid size={{ xs: 12, md: 4 }}>
-          <Stack spacing={3} sx={{ height: '100%' }}>
-            {/* Quick Upload Action */}
+          <Stack spacing={3}>
+            {/* Quick Upload Action - Now with controlled height */}
             <Card sx={{ 
-              borderRadius: 3, bgcolor: 'text.primary', color: 'background.paper',
-              position: 'relative', overflow: 'hidden', flex: 1, display: 'flex', alignItems: 'center'
+              borderRadius: 4, 
+              bgcolor: 'text.primary', 
+              color: 'background.paper',
+              position: 'relative', 
+              overflow: 'hidden',
+              minHeight: 200, // Fixed height so it doesn't stretch awkwardly
+              display: 'flex', 
+              alignItems: 'center',
+              boxShadow: '0 10px 30px -5px rgba(0,0,0,0.3)'
             }}>
-              <Box sx={{ position: 'absolute', right: -10, bottom: -10, opacity: 0.1, transform: 'rotate(-15deg)' }}>
-                <Printer size={120} />
+              {/* Background Decoration */}
+              <Box sx={{ 
+                position: 'absolute', 
+                right: -15, 
+                bottom: -15, 
+                opacity: 0.1, 
+                transform: 'rotate(-15deg)',
+                color: 'inherit' 
+              }}>
+                <Printer size={140} />
               </Box>
-              <CardContent sx={{ p: 3, width: '100%', position: 'relative', zIndex: 1 }}>
-                <Typography variant="h6" sx={{ fontWeight: 900, mb: 1 }}>New Print Job</Typography>
-                <Typography variant="body2" sx={{ opacity: 0.7, mb: 3 }}>Upload PDF and release at any kiosk instantly.</Typography>
+
+              <CardContent sx={{ p: 4, width: '100%', position: 'relative', zIndex: 1 }}>
+                <Typography variant="h6" sx={{ fontWeight: 900, mb: 1, lineHeight: 1.2 }}>
+                  Ready to print?
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.7, mb: 3, maxWidth: '80%' }}>
+                  Upload PDF and release at any kiosk instantly.
+                </Typography>
                 <Button 
-                  fullWidth variant="contained" 
+                  fullWidth 
+                  variant="contained" 
                   onClick={() => window.location.href='/dashboard/upload'}
-                  sx={{ bgcolor: 'background.paper', color: 'text.primary', fontWeight: 800, borderRadius: 2, '&:hover': { bgcolor: alpha('#fff', 0.9) } }}
+                  sx={{ 
+                    bgcolor: 'background.paper', 
+                    color: 'text.primary', 
+                    fontWeight: 800, 
+                    borderRadius: 2,
+                    textTransform: 'none',
+                    '&:hover': { bgcolor: alpha('#fff', 0.9), transform: 'translateY(-2px)' },
+                    transition: 'all 0.2s'
+                  }}
                 >
-                  Upload Now
+                  Upload Document
                 </Button>
               </CardContent>
             </Card>
