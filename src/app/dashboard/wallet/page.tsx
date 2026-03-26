@@ -185,7 +185,7 @@ export default function WalletPage() {
                     startIcon={<QrCode size={20} />}
                     sx={{ borderRadius: 3, height: 56, fontWeight: 700 }}
                   >
-                    Scan QR
+                    {recharging ? <CircularProgress size={24} color="inherit" /> : 'Scan QR'}
                   </Button>
                 </Grid>
               </Grid>
@@ -196,7 +196,7 @@ export default function WalletPage() {
                 onClick={() => handleRecharge()}
                 sx={{ mt: 2, py: 1.8, bgcolor: 'text.primary', color: 'background.paper', fontWeight: 900, borderRadius: 3 }}
               >
-                {recharging ? <CircularProgress size={24} color="inherit" /> : 'Confirm Redemption'}
+                {recharging ? <CircularProgress size={24} color="inherit" /> : 'Redeem'}
               </Button>
 
               {statusMsg.text && (
