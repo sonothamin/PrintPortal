@@ -133,7 +133,7 @@ export default function WalletPage() {
 
       {/* Main Grid - Note: 'item' removed, 'size' prop added */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
-        
+
         {/* Balance Card - Compact (33% width) */}
         <Grid size={{ xs: 12, md: 4 }}>
           <Card sx={{
@@ -253,11 +253,14 @@ export default function WalletPage() {
       </Card>
 
       {/* QR Scanner Dialog */}
-      <Dialog open={qrOpen} onClose={() => setQrOpen(false)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: 4 } }}>
-        <DialogTitle sx={{ fontWeight: 900 }}>Scan Token QR Code</DialogTitle>
-        <DialogContent sx={{ p: 0 }}><Box id="reader" sx={{ width: '100%', aspectRatio: '1/1', '& video': { objectFit: 'cover !important' } }} /></DialogContent>
-        <DialogActions sx={{ p: 2 }}><Button onClick={() => setQrOpen(false)} color="inherit">Cancel</Button></DialogActions>
+      <Dialog open={qrOpen} onClose={() => setQrOpen(false)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: 2, aspectRatio: '1/1', overflow: 'hidden' } }}>
+        <DialogTitle sx={{ fontWeight: 900, pb: 0 }}>Scan Token QR Code</DialogTitle>
+        <DialogContent sx={{ p: 0, display: 'flex', flexDirection: 'column' }}>
+          <Box id="reader" sx={{ flexGrow: 1, width: '100%', '& video': { objectFit: 'cover !important', height: '100% !important' } }} />
+        </DialogContent>
+        <DialogActions sx={{ p: 1 }}>
+          <Button onClick={() => setQrOpen(false)} color="inherit" fullWidth>Cancel</Button>
+        </DialogActions>
       </Dialog>
-    </DashboardLayout>
-  );
+      );
 }
