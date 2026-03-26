@@ -70,7 +70,7 @@ export default function DashboardPage() {
         supabase.from('print_jobs')
           .select('*')
           .eq('user_id', session.user.id)
-          .in('status', ['pending', 'processing'])
+          .in('status', ['pending'])
           .order('created_at', { ascending: false }),
         supabase.from('profiles').select('*').eq('id', session.user.id).single(),
         supabase.from('kiosks').select('name, status').limit(5)
