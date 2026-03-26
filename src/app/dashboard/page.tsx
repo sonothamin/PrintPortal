@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import {
-  Grid, Typography, Card, CardContent, Box, Button, Table,
+  Grid2 as Grid, Typography, Card, CardContent, Box, Button, Table,
   TableBody, TableCell, TableContainer, TableHead, TableRow,
   alpha, IconButton, Dialog, DialogContent, DialogTitle, 
   Stack, LinearProgress, Skeleton
@@ -16,7 +16,7 @@ import {
 import DashboardLayout from '@/components/DashboardLayout';
 import { supabase } from '@/lib/supabase';
 
-// --- Types & Interfaces ---
+// --- Configuration & Types ---
 const STATUS_CONFIG = {
   processing: { label: 'Processing', color: '#5a82e8', icon: <Zap size={14} fill="#5a82e8" /> },
   pending: { label: 'Pending', color: '#ed6c02', icon: <Clock size={14} /> },
@@ -53,7 +53,7 @@ interface DashboardState {
 }
 
 export default function DashboardPage() {
-  // --- State Management ---
+  // --- State ---
   const [state, setState] = useState<DashboardState>({
     jobs: [],
     profile: null,
@@ -62,7 +62,7 @@ export default function DashboardPage() {
   });
   const [qrJob, setQrJob] = useState<PrintJob | null>(null);
 
-  // --- Logic Design: Unified Data Fetching ---
+  // --- Logic: Unified Resource Fetching ---
   const initDashboard = useCallback(async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -70,7 +70,7 @@ export default function DashboardPage() {
 
       const userId = session.user.id;
 
-      // Parallel fetching with targeted column selection for performance
+      // Parallel requests for speed + Specific column selection to reduce payload
       const [jobsRes, profileRes, kiosksRes] = await Promise.all([
         supabase.from('print_jobs').select('id, file_name, status, release_code, cost').eq('user_id', userId).order('created_at', { ascending: false }).limit(5),
         supabase.from('profiles').select('full_name, wallet_balance').eq('id', userId).single(),
@@ -84,7 +84,7 @@ export default function DashboardPage() {
         loading: false
       });
     } catch (error) {
-      console.error('Dashboard Load Error:', error);
+      console.error('Data Fetch Error:', error);
       setState(prev => ({ ...prev, loading: false }));
     }
   }, []);
@@ -93,7 +93,7 @@ export default function DashboardPage() {
     initDashboard();
   }, [initDashboard]);
 
-  // --- Sub-components ---
+  // --- Components ---
   const StatusBadge = ({ status }: { status: PrintStatus }) => {
     const config = STATUS_CONFIG[status] || STATUS_CONFIG.pending;
     return (
@@ -111,14 +111,14 @@ export default function DashboardPage() {
 
   return (
     <DashboardLayout>
-      {/* Header: Stable Layout regardless of loading state */}
+      {/* Header with Skeleton State */}
       <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
         <Box>
           <Typography variant="h4" sx={{ fontWeight: 900, letterSpacing: -1 }}>
-            {loading ? <Skeleton width={200} /> : `Hey, ${profile?.full_name?.split(' ')[0] || 'User'}!`}
+            {loading ? <Skeleton width={180} /> : `Hey, ${profile?.full_name?.split(' ')[0] || 'User'}!`}
           </Typography>
           <Typography color="text.secondary" variant="body2">
-            {loading ? <Skeleton width={250} /> : (profile?.wallet_balance ?? 0) < 5 ? "Low balance alert! Top up soon." : "Your printing station is ready."}
+            {loading ? <Skeleton width={240} /> : (profile?.wallet_balance ?? 0) < 5 ? "Low balance alert! Top up soon." : "Your printing station is ready."}
           </Typography>
         </Box>
 
@@ -138,8 +138,8 @@ export default function DashboardPage() {
       </Box>
 
       <Grid container spacing={3}>
-        {/* Left: Recent Activity */}
-        <Grid item xs={12} md={8}>
+        {/* Main Section: Activity */}
+        <Grid size={{ xs: 12, md: 8 }}>
           <Card variant="outlined" sx={{ borderRadius: 3, minHeight: 380 }}>
             <CardContent sx={{ p: 3 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -159,9 +159,11 @@ export default function DashboardPage() {
                   </TableHead>
                   <TableBody>
                     {loading ? (
-                      [...Array(5)].map((_, i) => (
-                        <TableRow key={i}><TableCell colSpan={4}><Skeleton variant="text" /></TableCell></TableRow>
+                      [...Array(3)].map((_, i) => (
+                        <TableRow key={i}><TableCell colSpan={4}><Skeleton height={40} /></TableCell></TableRow>
                       ))
+                    ) : jobs.length === 0 ? (
+                      <TableRow><TableCell colSpan={4} align="center"><Typography variant="body2" sx={{ py: 4, opacity: 0.5 }}>No recent jobs found.</Typography></TableCell></TableRow>
                     ) : jobs.map((job) => (
                       <TableRow key={job.id} hover>
                         <TableCell sx={{ fontWeight: 600, maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -190,33 +192,34 @@ export default function DashboardPage() {
           </Card>
         </Grid>
 
-        {/* Right Side: Stacked UI */}
-        <Grid item xs={12} md={4}>
+        {/* Sidebar: Actions & Status */}
+        <Grid size={{ xs: 12, md: 4 }}>
           <Stack spacing={3}>
-            {/* CTA Card */}
+            {/* Upload CTA */}
             <Card sx={{ 
               borderRadius: 4, bgcolor: 'text.primary', color: 'background.paper',
               position: 'relative', overflow: 'hidden', minHeight: 180,
-              display: 'flex', alignItems: 'center'
+              display: 'flex', alignItems: 'center',
+              boxShadow: '0 10px 30px -5px rgba(0,0,0,0.2)'
             }}>
               <Box sx={{ position: 'absolute', right: -10, bottom: -10, opacity: 0.1, transform: 'rotate(-15deg)' }}>
                 <Printer size={120} />
               </Box>
-              <CardContent sx={{ p: 3, zIndex: 1 }}>
+              <CardContent sx={{ p: 3, zIndex: 1, width: '100%' }}>
                 <Typography variant="h6" sx={{ fontWeight: 900, mb: 0.5 }}>Ready to print?</Typography>
-                <Typography variant="body2" sx={{ opacity: 0.7, mb: 2 }}>Upload and release at any kiosk.</Typography>
+                <Typography variant="body2" sx={{ opacity: 0.7, mb: 2.5 }}>Upload PDF and release at any kiosk.</Typography>
                 <Button 
                   variant="contained" 
                   fullWidth
                   onClick={() => window.location.href='/dashboard/upload'}
-                  sx={{ bgcolor: 'background.paper', color: 'text.primary', fontWeight: 800, textTransform: 'none', '&:hover': { bgcolor: alpha('#fff', 0.8) } }}
+                  sx={{ bgcolor: 'background.paper', color: 'text.primary', fontWeight: 800, textTransform: 'none', '&:hover': { bgcolor: alpha('#fff', 0.9) } }}
                 >
-                  Upload Now
+                  Upload Document
                 </Button>
               </CardContent>
             </Card>
 
-            {/* Kiosk Tracker */}
+            {/* Kiosk Status */}
             <Card variant="outlined" sx={{ borderRadius: 3 }}>
               <CardContent sx={{ p: 3 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
@@ -225,7 +228,7 @@ export default function DashboardPage() {
                 </Box>
                 <Stack spacing={1.5}>
                   {loading ? (
-                    <Skeleton variant="rectangular" height={100} />
+                    <Skeleton variant="rectangular" height={80} sx={{ borderRadius: 2 }} />
                   ) : kiosks.map((k, i) => (
                     <Box key={i} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <Typography variant="body2" sx={{ fontWeight: 600 }}>{k.name}</Typography>
@@ -243,7 +246,7 @@ export default function DashboardPage() {
         </Grid>
       </Grid>
 
-      {/* QR Code Modal */}
+      {/* QR Modal */}
       <Dialog open={!!qrJob} onClose={() => setQrJob(null)} PaperProps={{ sx: { borderRadius: 4, p: 2, maxWidth: 350 } }}>
         <DialogTitle sx={{ fontWeight: 900, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           Scan to Print
@@ -255,10 +258,10 @@ export default function DashboardPage() {
               <QRCodeSVG value={qrJob.release_code} size={180} />
             </Box>
           )}
-          <Typography variant="h4" sx={{ fontFamily: 'monospace', fontWeight: 900, color: 'primary.main', letterSpacing: 4 }}>
+          <Typography variant="h4" sx={{ fontFamily: 'monospace', fontWeight: 900, color: 'primary.main', letterSpacing: 4, mb: 1 }}>
             {qrJob?.release_code}
           </Typography>
-          <Typography variant="caption" color="text.secondary">Present this at the kiosk scanner</Typography>
+          <Typography variant="caption" color="text.secondary">Scan at the kiosk scanner to release file</Typography>
         </DialogContent>
       </Dialog>
     </DashboardLayout>
