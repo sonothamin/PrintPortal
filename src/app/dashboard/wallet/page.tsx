@@ -254,8 +254,8 @@ export default function WalletPage() {
 
       {/* QR Scanner Dialog */}
       <Dialog open={qrOpen} onClose={() => setQrOpen(false)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: 4 } }}>
-        <DialogTitle sx={{ fontWeight: 900 }}>Scan Token</DialogTitle>
-        <DialogContent sx={{ p: 0 }}><Box id="reader" sx={{ width: '100%', aspectRatio: '1/1' }} /></DialogContent>
+        <DialogTitle sx={{ fontWeight: 900 }}>Scan Token QR Code</DialogTitle>
+        <DialogContent sx={{ p: 0 }}><Box id="reader" sx={{ width: '100%', aspectRatio: '1/1', '& video': { objectFit: 'cover !important' } }} /></DialogContent>
         <DialogActions sx={{ p: 2 }}><Button onClick={() => setQrOpen(false)} color="inherit">Cancel</Button></DialogActions>
       </Dialog>
     </DashboardLayout>
