@@ -258,7 +258,7 @@ export default function WalletPage() {
         onClose={() => setQrOpen(false)} 
         maxWidth="xs" 
         fullWidth 
-        PaperProps={{ sx: { borderRadius: 4, aspectRatio: '1/1', overflow: 'hidden' } }}
+        PaperProps={{ sx: { borderRadius: 2, aspectRatio: '1/1', overflow: 'hidden' } }}
       >
         <DialogTitle sx={{ fontWeight: 900, pb: 0 }}>Scan Token QR Code</DialogTitle>
         <DialogContent sx={{ p: 0, display: 'flex', flexDirection: 'column' }}>
