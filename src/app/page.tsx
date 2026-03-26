@@ -17,8 +17,7 @@ import {
   Menu,
   MenuItem,
   ListItemIcon,
-  ListItemText,
-  buttonBaseClasses
+  ListItemText
 } from '@mui/material';
 import {
   Printer,
@@ -291,22 +290,9 @@ export default function LandingPage() {
           <Typography variant="caption" color="text.secondary" align="center" sx={{ display: 'block', fontStyle: 'italic', mb: 3 }}>
             PrintPortal - because your time matters.
           </Typography>
-          <Typography
-            variant="caption"
-            color="text.secondary"
-            align="center"
-            sx={{ display: 'block', opacity: 0.5 }}
-          >
-            © 2026 PrintPortal - Sonoth Amin • {' '}
-            <Link
-              component="button"
-              variant="body2"
-              sx={{ fontWeight: 600, cursor: 'pointer' }}
-              href="/legal"
-              underline="hover"
-            >
-              Legal
-            </Link>
+          <Typography variant="caption" color="text.secondary" align="center" sx={{ display: 'block', opacity: 0.5 }}>
+            © 2026 PrintPortal - Sonoth Amin
+            <Link href='/legals'> • Legals</Link>
           </Typography>
         </Container>
       </Box>
