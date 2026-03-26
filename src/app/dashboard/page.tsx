@@ -4,7 +4,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { supabase } from '@/lib/supabase';
 import {
-  Grid2 as Grid,
+  Grid,
   Typography,
   Card,
   CardContent,
@@ -118,7 +118,6 @@ export default function DashboardPage() {
 
   return (
     <DashboardLayout>
-      {/* Header & Balance */}
       <Box sx={{ mb: 6, display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'flex-end' }, gap: 3 }}>
         <Box>
           <Typography variant="h4" sx={{ fontWeight: 900, mb: 1, letterSpacing: -1.5 }}>
@@ -145,7 +144,6 @@ export default function DashboardPage() {
       </Box>
 
       <Grid container spacing={4}>
-        {/* Main Content Area */}
         <Grid size={{ xs: 12, md: 8 }}>
           <Card variant="outlined" sx={{ borderRadius: 2, mb: 4, border: 'none', boxShadow: (theme) => theme.palette.mode === 'dark' ? '0 4px 20px rgba(0,0,0,0.5)' : '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}>
             <CardContent sx={{ p: 4 }}>
@@ -186,9 +184,7 @@ export default function DashboardPage() {
           </Card>
         </Grid>
 
-        {/* Sidebar Area */}
         <Grid size={{ xs: 12, md: 4 }}>
-          {/* Quick Upload Action */}
           <Card
             sx={{
               borderRadius: 2,
@@ -237,7 +233,6 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          {/* Kiosk Status Card */}
           <Card variant="outlined" sx={{ borderRadius: 2 }}>
             <CardContent sx={{ p: 4 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
@@ -262,7 +257,6 @@ export default function DashboardPage() {
         </Grid>
       </Grid>
 
-      {/* QR Code Dialog */}
       <Dialog 
         open={!!qrJob} 
         onClose={() => setQrJob(null)}
@@ -285,10 +279,6 @@ export default function DashboardPage() {
             <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
               Scan this QR code at any PrintPortal kiosk to release your print job.
             </Typography>
-          </Box>
-          <Box sx={{ bgcolor: (theme) => alpha(theme.palette.info.main, 0.08), borderRadius: 2, p: 2, width: '100%' }}>
-            <Typography variant="caption" sx={{ fontWeight: 700, color: 'info.main' }}>{qrJob?.file_name}</Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>Cost: ৳{qrJob?.cost.toFixed(2)}</Typography>
           </Box>
         </DialogContent>
       </Dialog>
